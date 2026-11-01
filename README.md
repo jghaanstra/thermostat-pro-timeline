@@ -402,6 +402,32 @@ data:
 	colors: true
 ```
 
+Service: `room_pause_control` — pause one or more rooms
+
+Example (pause selected rooms for 90 minutes):
+
+```yaml
+service: thermostat_timeline.room_pause_control
+data:
+	entity_id:
+		- climate.living_room
+		- climate.kitchen
+	minutes: 90
+```
+
+Service: `apply_enabled_control` — enable/disable/toggle schedule application per room
+
+Example (disable schedule application for selected rooms):
+
+```yaml
+service: thermostat_timeline.apply_enabled_control
+data:
+	action: disable
+	entity_id:
+		- climate.living_room
+		- climate.kitchen
+```
+
 Utilities
 
 - `clear`: Clear all schedules and bump version.

@@ -649,6 +649,284 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                      hass.data[DOMAIN]["version"], sched_changed, settings_changed)
         await _save_and_broadcast()
 
+    def _service_entity_ids(data: dict[str, Any]) -> list[str]:
+        """Normalize entity ids from service data (entity_id or target.entity_id)."""
+        raw = data.get("entity_id")
+        if raw is None:
+            target = data.get("target")
+            if isinstance(target, dict):
+                raw = target.get("entity_id")
+
+        out: list[str] = []
+        if isinstance(raw, str):
+            s = raw.strip()
+            if s:
+                out.append(s)
+        elif isinstance(raw, (list, tuple, set)):
+            for item in raw:
+                if not isinstance(item, str):
+                    continue
+                s = item.strip()
+                if s:
+                    out.append(s)
+
+        # Preserve order while removing duplicates.
+        seen: set[str] = set()
+        deduped: list[str] = []
+        for eid in out:
+            if eid in seen:
+                continue
+            seen.add(eid)
+            deduped.append(eid)
+        return deduped
+
+    def _resolve_primary_for_room_pause(eid: str, schedules: dict[str, Any], settings: dict[str, Any]) -> str | None:
+        """Resolve room_pause key using primary room semantics used by auto-apply."""
+        if eid in schedules:
+            return eid
+
+        merges = settings.get("merges") or {}
+        if isinstance(merges, dict):
+            for primary, linked in merges.items():
+                if not isinstance(primary, str):
+                    continue
+                try:
+                    if eid in (linked or []):
+                        return primary
+                except Exception:
+                    continue
+
+        entities = settings.get("entities")
+        if isinstance(entities, list) and eid in entities:
+            return eid
+
+        return None
+
+    def _room_pause_key_for_entity(
+        eid: str,
+        room_pause: dict[str, Any],
+        schedules: dict[str, Any],
+        settings: dict[str, Any],
+    ) -> str | None:
+        """Match Lovelace card keying semantics for room_pause.
+
+        JS card logic:
+        1) if map has exact eid key -> use eid
+        2) else if map has primary key -> use primary
+        3) else use primary (or eid when no primary could be resolved)
+        """
+        if eid in room_pause:
+            return eid
+        primary = _resolve_primary_for_room_pause(eid, schedules, settings)
+        if primary and primary in room_pause:
+            return primary
+        if primary:
+            return primary
+        return eid if isinstance(eid, str) and eid.startswith("climate.") else None
+
+    def _room_pause_resume_keys(
+        eid: str,
+        room_pause: dict[str, Any],
+        schedules: dict[str, Any],
+        settings: dict[str, Any],
+    ) -> list[str]:
+        """Return all plausible keys to clear for resume (handles legacy aliases)."""
+        out: list[str] = []
+
+        key = _room_pause_key_for_entity(eid, room_pause, schedules, settings)
+        if key:
+            out.append(key)
+
+        primary = _resolve_primary_for_room_pause(eid, schedules, settings)
+        if primary and primary not in out:
+            out.append(primary)
+
+        if eid not in out:
+            out.append(eid)
+
+        if primary:
+            merges = settings.get("merges") or {}
+            if isinstance(merges, dict):
+                for linked in merges.get(primary, []) or []:
+                    if isinstance(linked, str) and linked not in out:
+                        out.append(linked)
+
+        return out
+
+    async def room_pause_control(call: ServiceCall):
+        """Pause one or more rooms by mutating settings.room_pause."""
+        _ensure_instances_loaded(hass)
+        instances = hass.data[DOMAIN].setdefault("instances", {})
+
+        entity_ids = _service_entity_ids(call.data)
+        if not entity_ids:
+            _LOGGER.warning("%s.room_pause_control: entity_id is required", DOMAIN)
+            return
+
+        pause_indef = bool(call.data.get("indefinite"))
+        minutes_raw = call.data.get("minutes")
+        pause_minutes: int | None = None
+
+        if pause_indef:
+            if minutes_raw is not None:
+                _LOGGER.warning("%s.room_pause_control: provide either indefinite=true or minutes, not both", DOMAIN)
+                return
+        else:
+            if minutes_raw is None:
+                _LOGGER.warning("%s.room_pause_control: minutes is required when indefinite=false", DOMAIN)
+                return
+            try:
+                pause_minutes = int(float(minutes_raw))
+            except (TypeError, ValueError):
+                _LOGGER.warning("%s.room_pause_control: minutes must be a positive number", DOMAIN)
+                return
+            if pause_minutes <= 0:
+                _LOGGER.warning("%s.room_pause_control: minutes must be greater than 0", DOMAIN)
+                return
+
+        if "instance_id" in call.data:
+            iid = _norm_instance_id(call.data.get("instance_id"))
+        else:
+            iid = _norm_instance_id(hass.data[DOMAIN].get("active_instance_id") or "default")
+
+        inst = instances.get(iid)
+        if not isinstance(inst, dict):
+            _LOGGER.warning("%s.room_pause_control: instance_id '%s' not found", DOMAIN, iid)
+            return
+
+        settings = inst.get("settings", {}) if isinstance(inst.get("settings"), dict) else {}
+        schedules = inst.get("schedules", {}) if isinstance(inst.get("schedules"), dict) else {}
+        room_pause = settings.get("room_pause", {}) if isinstance(settings.get("room_pause"), dict) else {}
+
+        new_room_pause = dict(room_pause)
+        changed = False
+
+        now_ms = dt_util.utcnow().timestamp() * 1000.0
+
+        for eid in entity_ids:
+            if not isinstance(eid, str) or not eid.startswith("climate."):
+                _LOGGER.warning("%s.room_pause_control: skipping non-climate entity '%s'", DOMAIN, eid)
+                continue
+
+            room_key = _room_pause_key_for_entity(eid, new_room_pause, schedules, settings)
+            primary = _resolve_primary_for_room_pause(eid, schedules, settings)
+
+            # Pause requires a resolvable room within this instance.
+            if not room_key or not primary:
+                _LOGGER.warning(
+                    "%s.room_pause_control: entity '%s' is not part of instance '%s' schedule",
+                    DOMAIN,
+                    eid,
+                    iid,
+                )
+                continue
+
+            if pause_indef:
+                next_entry = {"indef": True, "until_ms": 0}
+            else:
+                next_entry = {"indef": False, "until_ms": int(now_ms + (pause_minutes or 0) * 60000)}
+
+            if new_room_pause.get(room_key) != next_entry:
+                new_room_pause[room_key] = next_entry
+                changed = True
+
+        if not changed:
+            return
+
+        new_settings = dict(settings)
+        new_settings["room_pause"] = new_room_pause
+        inst["settings"] = new_settings
+        instances[iid] = inst
+
+        active_iid = _norm_instance_id(hass.data[DOMAIN].get("active_instance_id") or "default")
+        if iid == active_iid:
+            hass.data[DOMAIN]["settings"] = new_settings
+
+        hass.data[DOMAIN]["settings_version"] = int(
+            hass.data[DOMAIN].get("settings_version", hass.data[DOMAIN].get("version", 1))
+        ) + 1
+        hass.data[DOMAIN]["version"] = int(hass.data[DOMAIN].get("version", 1)) + 1
+
+        await _save_and_broadcast()
+
+    async def apply_enabled_control(call: ServiceCall):
+        """Enable, disable, or toggle schedule application for one or more rooms."""
+        _ensure_instances_loaded(hass)
+        instances = hass.data[DOMAIN].setdefault("instances", {})
+
+        action = str(call.data.get("action") or "").strip().lower()
+        if action not in ("enable", "disable", "toggle"):
+            _LOGGER.warning("%s.apply_enabled_control: action must be 'enable', 'disable', or 'toggle'", DOMAIN)
+            return
+
+        entity_ids = _service_entity_ids(call.data)
+        if not entity_ids:
+            _LOGGER.warning("%s.apply_enabled_control: entity_id is required", DOMAIN)
+            return
+
+        if "instance_id" in call.data:
+            iid = _norm_instance_id(call.data.get("instance_id"))
+        else:
+            iid = _norm_instance_id(hass.data[DOMAIN].get("active_instance_id") or "default")
+
+        inst = instances.get(iid)
+        if not isinstance(inst, dict):
+            _LOGGER.warning("%s.apply_enabled_control: instance_id '%s' not found", DOMAIN, iid)
+            return
+
+        settings = inst.get("settings", {}) if isinstance(inst.get("settings"), dict) else {}
+        schedules = inst.get("schedules", {}) if isinstance(inst.get("schedules"), dict) else {}
+        apply_enabled = settings.get("apply_enabled", {}) if isinstance(settings.get("apply_enabled"), dict) else {}
+
+        new_apply_enabled = dict(apply_enabled)
+        changed = False
+
+        for eid in entity_ids:
+            if not isinstance(eid, str) or not eid.startswith("climate."):
+                _LOGGER.warning("%s.apply_enabled_control: skipping non-climate entity '%s'", DOMAIN, eid)
+                continue
+
+            primary = _resolve_primary_for_room_pause(eid, schedules, settings)
+            if not primary:
+                _LOGGER.warning(
+                    "%s.apply_enabled_control: entity '%s' is not part of instance '%s' schedule",
+                    DOMAIN,
+                    eid,
+                    iid,
+                )
+                continue
+
+            current = bool(new_apply_enabled.get(primary, True))
+            if action == "toggle":
+                nxt = not current
+            elif action == "enable":
+                nxt = True
+            else:
+                nxt = False
+
+            if current != nxt or primary not in new_apply_enabled:
+                new_apply_enabled[primary] = nxt
+                changed = True
+
+        if not changed:
+            return
+
+        new_settings = dict(settings)
+        new_settings["apply_enabled"] = new_apply_enabled
+        inst["settings"] = new_settings
+        instances[iid] = inst
+
+        active_iid = _norm_instance_id(hass.data[DOMAIN].get("active_instance_id") or "default")
+        if iid == active_iid:
+            hass.data[DOMAIN]["settings"] = new_settings
+
+        hass.data[DOMAIN]["settings_version"] = int(
+            hass.data[DOMAIN].get("settings_version", hass.data[DOMAIN].get("version", 1))
+        ) + 1
+        hass.data[DOMAIN]["version"] = int(hass.data[DOMAIN].get("version", 1)) + 1
+
+        await _save_and_broadcast()
+
     async def select_instance(call: ServiceCall):
         """Select the active instance id.
 
@@ -1292,6 +1570,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(DOMAIN, "import_backup", import_backup)
     hass.services.async_register(DOMAIN, "restore_now", restore_now)
     hass.services.async_register(DOMAIN, "patch_entity", patch_entity)
+    hass.services.async_register(DOMAIN, "room_pause_control", room_pause_control)
+    hass.services.async_register(DOMAIN, "apply_enabled_control", apply_enabled_control)
     hass.services.async_register(DOMAIN, "clear", clear)
     
     hass.services.async_register(
@@ -2852,7 +3132,7 @@ class AutoApplyManager:
                 # apply_enabled to for this room. Safe to remove once the
                 # intermittent "OFF room still gets a new setpoint" issue is
                 # confirmed fixed.
-                _LOGGER.warning(
+                _LOGGER.debug(
                     "ThermostatTimeline apply_setpoint: eid=%s desired=%.2f primary=%s apply_enabled=%s",
                     eid, desired, primary_for_apply, apply_enabled,
                 )
@@ -3191,7 +3471,7 @@ class MultiInstanceAutoApplyManager:
             active_iid = _norm_instance_id(
                 d.get("active_instance_id") or "default"
             )
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "ThermostatTimeline MULTI SYNC DATA: active=%s instances=%s",
                 d.get("active_instance_id"),
                 list(instances.keys()),

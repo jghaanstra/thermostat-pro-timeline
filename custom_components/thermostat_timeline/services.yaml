@@ -93,6 +93,76 @@ patch_entity:
       selector:
         object: {}
 
+room_pause_control:
+  name: Room pause control
+  description: Pause auto-apply for one or more room climate entities in an instance.
+  fields:
+    entity_id:
+      name: Rooms
+      description: One or more climate entities that belong to the selected instance schedule.
+      required: true
+      selector:
+        entity:
+          domain: climate
+          multiple: true
+    minutes:
+      name: Duration (minutes)
+      description: Required unless indefinite=true.
+      required: false
+      example: 90
+      selector:
+        number:
+          min: 1
+          max: 10080
+          step: 1
+          mode: box
+          unit_of_measurement: min
+    indefinite:
+      name: Pause indefinitely
+      description: When true, pauses until resumed manually.
+      required: false
+      selector:
+        boolean: {}
+    instance_id:
+      name: Instance ID
+      description: Optional. Defaults to active instance when omitted.
+      required: false
+      example: default
+      selector:
+        text: {}
+
+apply_enabled_control:
+  name: Room schedule apply control
+  description: Enable, disable, or toggle schedule application for one or more room climate entities.
+  fields:
+    action:
+      name: Action
+      description: Select enable, disable, or toggle for selected rooms.
+      required: true
+      example: disable
+      selector:
+        select:
+          options:
+            - enable
+            - disable
+            - toggle
+          mode: dropdown
+    entity_id:
+      name: Rooms
+      description: One or more climate entities that belong to the selected instance schedule.
+      required: true
+      selector:
+        entity:
+          domain: climate
+          multiple: true
+    instance_id:
+      name: Instance ID
+      description: Optional. Defaults to active instance when omitted.
+      required: false
+      example: default
+      selector:
+        text: {}
+
 clear:
   name: Clear store
   description: Clear all schedules and bump version.
