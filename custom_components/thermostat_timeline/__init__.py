@@ -927,6 +927,96 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         await _save_and_broadcast()
 
+    async def manual_override_control(call: ServiceCall):
+        """Configure physical/manual setpoint override protection."""
+        _ensure_instances_loaded(hass)
+        instances = hass.data[DOMAIN].setdefault("instances", {})
+
+        if "instance_id" in call.data:
+            iid = _norm_instance_id(call.data.get("instance_id"))
+        else:
+            iid = _norm_instance_id(hass.data[DOMAIN].get("active_instance_id") or "default")
+
+        inst = instances.get(iid)
+        if not isinstance(inst, dict):
+            _LOGGER.warning("%s.manual_override_control: instance_id '%s' not found", DOMAIN, iid)
+            return
+
+        settings = inst.get("settings", {}) if isinstance(inst.get("settings"), dict) else {}
+        new_settings = dict(settings)
+        changed = False
+
+        action = str(call.data.get("action") or "").strip().lower()
+        if action:
+            if action not in ("enable", "disable"):
+                _LOGGER.warning("%s.manual_override_control: action must be 'enable' or 'disable'", DOMAIN)
+                return
+            next_enabled = action == "enable"
+            if bool(new_settings.get("manual_override_enabled")) != next_enabled:
+                new_settings["manual_override_enabled"] = next_enabled
+                changed = True
+
+        if "enabled" in call.data:
+            next_enabled = bool(call.data.get("enabled"))
+            if bool(new_settings.get("manual_override_enabled")) != next_enabled:
+                new_settings["manual_override_enabled"] = next_enabled
+                changed = True
+
+        if "minutes" in call.data:
+            try:
+                mins = int(float(call.data.get("minutes")))
+            except (TypeError, ValueError):
+                _LOGGER.warning("%s.manual_override_control: minutes must be a positive number", DOMAIN)
+                return
+            if mins <= 0:
+                _LOGGER.warning("%s.manual_override_control: minutes must be greater than 0", DOMAIN)
+                return
+            if int(new_settings.get("manual_override_minutes", 60)) != mins:
+                new_settings["manual_override_minutes"] = mins
+                changed = True
+
+        if "threshold_c" in call.data:
+            try:
+                threshold_c = float(call.data.get("threshold_c"))
+            except (TypeError, ValueError):
+                _LOGGER.warning("%s.manual_override_control: threshold_c must be a number", DOMAIN)
+                return
+            if threshold_c < 0:
+                _LOGGER.warning("%s.manual_override_control: threshold_c must be >= 0", DOMAIN)
+                return
+            if float(new_settings.get("manual_override_threshold_c", 0.3)) != float(threshold_c):
+                new_settings["manual_override_threshold_c"] = float(threshold_c)
+                changed = True
+
+        if "mode" in call.data:
+            mode = str(call.data.get("mode") or "").strip().lower()
+            if mode not in ("automation", "contextless", "both"):
+                _LOGGER.warning("%s.manual_override_control: mode must be 'automation', 'contextless', or 'both'", DOMAIN)
+                return
+            if (
+                str(new_settings.get("manual_override_mode", "contextless")).strip().lower() != mode
+                or "manual_override_mode" not in new_settings
+            ):
+                new_settings["manual_override_mode"] = mode
+                changed = True
+
+        if not changed:
+            return
+
+        inst["settings"] = new_settings
+        instances[iid] = inst
+
+        active_iid = _norm_instance_id(hass.data[DOMAIN].get("active_instance_id") or "default")
+        if iid == active_iid:
+            hass.data[DOMAIN]["settings"] = new_settings
+
+        hass.data[DOMAIN]["settings_version"] = int(
+            hass.data[DOMAIN].get("settings_version", hass.data[DOMAIN].get("version", 1))
+        ) + 1
+        hass.data[DOMAIN]["version"] = int(hass.data[DOMAIN].get("version", 1)) + 1
+
+        await _save_and_broadcast()
+
     async def select_instance(call: ServiceCall):
         """Select the active instance id.
 
@@ -1572,6 +1662,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.services.async_register(DOMAIN, "patch_entity", patch_entity)
     hass.services.async_register(DOMAIN, "room_pause_control", room_pause_control)
     hass.services.async_register(DOMAIN, "apply_enabled_control", apply_enabled_control)
+    hass.services.async_register(DOMAIN, "manual_override_control", manual_override_control)
     hass.services.async_register(DOMAIN, "clear", clear)
     
     hass.services.async_register(
@@ -1625,6 +1716,7 @@ class AutoApplyManager:
         self._last_applied = {}  # eid -> {"min": int, "temp": float}
         self._next_is_resume = False
         self._next_room_resume = None
+        self._manual_override_unsubs: dict[str, Any] = {}
 
     async def async_start(self):
     # Apply once on startup and schedule next if enabled
@@ -1656,6 +1748,7 @@ class AutoApplyManager:
         self._reset_boiler_interval()
         self._reset_pause_sensor_watch()
         self._reset_target_recovery_watch()
+        self._sync_manual_override_timers()
 
     async def _on_store_changed(self):
         # Respect apply_on_edit toggle: only apply immediately on store changes when enabled
@@ -1669,6 +1762,7 @@ class AutoApplyManager:
         self._reset_boiler_interval()
         self._reset_pause_sensor_watch()
         self._reset_target_recovery_watch()
+        self._sync_manual_override_timers()
 
     def _pause_sensor_on(self, settings: dict) -> bool:
         """Return True when pause is requested via binary sensor."""
@@ -1700,6 +1794,208 @@ class AutoApplyManager:
         schedules = d.get("schedules", {})
         settings = d.get("settings", {})
         return schedules, settings
+
+    def _manual_override_config(self, settings: dict) -> tuple[bool, int, float, str]:
+        try:
+            enabled = bool(settings.get("manual_override_enabled", False))
+        except Exception:
+            enabled = False
+        try:
+            mins = int(float(settings.get("manual_override_minutes", 60)))
+            if mins <= 0:
+                mins = 60
+        except Exception:
+            mins = 60
+        try:
+            threshold_c = float(settings.get("manual_override_threshold_c", 0.3))
+            if threshold_c < 0:
+                threshold_c = 0.3
+        except Exception:
+            threshold_c = 0.3
+        try:
+            mode = str(settings.get("manual_override_mode", "contextless") or "contextless").strip().lower()
+        except Exception:
+            mode = "contextless"
+        if mode not in ("automation", "contextless", "both"):
+            mode = "contextless"
+        return enabled, mins, threshold_c, mode
+
+    def _manual_override_source_match(self, event, new_state, mode: str) -> bool:
+        """Filter manual override triggers by selected source mode.
+
+        - contextless: only changes without user_id and parent_id
+        - automation: only changes with user_id or parent_id
+        - both: all changes
+        """
+        try:
+            ctx = getattr(event, "context", None)
+            if ctx is None and new_state is not None:
+                ctx = getattr(new_state, "context", None)
+            has_ctx = False
+            if ctx is not None:
+                has_ctx = bool(getattr(ctx, "user_id", None) or getattr(ctx, "parent_id", None))
+
+            m = str(mode or "contextless").strip().lower()
+            if m == "both":
+                return True
+            if m == "automation":
+                return has_ctx
+            return not has_ctx
+        except Exception:
+            return True
+
+    async def _set_apply_enabled_for_primary(self, primary: str, enabled: bool, *, until_ms: float | None = None) -> bool:
+        try:
+            _ensure_instances_loaded(self.hass)
+            d = self.hass.data.get(DOMAIN, {})
+            instances = d.get("instances") if isinstance(d.get("instances"), dict) else {}
+            inst = instances.get(self._instance_id)
+            if not isinstance(inst, dict):
+                return False
+
+            settings = inst.get("settings", {}) if isinstance(inst.get("settings"), dict) else {}
+            apply_map = settings.get("apply_enabled", {}) if isinstance(settings.get("apply_enabled"), dict) else {}
+            mo_map = settings.get("manual_override_until_ms", {}) if isinstance(settings.get("manual_override_until_ms"), dict) else {}
+
+            current = bool(apply_map.get(primary, True))
+            changed = False
+            next_apply_map = dict(apply_map)
+            next_mo_map = dict(mo_map)
+
+            if current != bool(enabled) or primary not in next_apply_map:
+                next_apply_map[primary] = bool(enabled)
+                changed = True
+
+            if enabled:
+                if primary in next_mo_map:
+                    del next_mo_map[primary]
+                    changed = True
+            else:
+                if until_ms is not None:
+                    if float(next_mo_map.get(primary, 0.0) or 0.0) != float(until_ms):
+                        next_mo_map[primary] = float(until_ms)
+                        changed = True
+
+            if not changed:
+                return False
+
+            new_settings = dict(settings)
+            new_settings["apply_enabled"] = next_apply_map
+            new_settings["manual_override_until_ms"] = next_mo_map
+            inst["settings"] = new_settings
+            instances[self._instance_id] = inst
+
+            active_iid = _norm_instance_id(d.get("active_instance_id") or "default")
+            if self._instance_id == active_iid:
+                d["settings"] = new_settings
+
+            d["settings_version"] = int(d.get("settings_version", d.get("version", 1))) + 1
+            d["version"] = int(d.get("version", 1)) + 1
+
+            async_dispatcher_send(self.hass, SIGNAL_UPDATED)
+
+            store = d.get("store")
+            if store is not None:
+                try:
+                    active_store = instances.get(active_iid, {}) if isinstance(instances, dict) else {}
+                    await store.async_save({
+                        "instances": instances,
+                        "active_instance_id": active_iid,
+                        "schedules": active_store.get("schedules", d.get("schedules", {})),
+                        "weekdays": active_store.get("weekdays", d.get("weekday_schedules", {})),
+                        "profiles": active_store.get("profiles", d.get("profile_schedules", {})),
+                        "settings": active_store.get("settings", d.get("settings", {})),
+                        "colors": active_store.get("colors", d.get("colors", {})),
+                        "version": d.get("version", 1),
+                        "settings_version": d.get("settings_version", d.get("version", 1)),
+                        "colors_version": d.get("colors_version", d.get("version", 1)),
+                        "weekday_version": d.get("weekday_version", d.get("version", 1)),
+                        "profile_version": d.get("profile_version", d.get("version", 1)),
+                    })
+                except Exception:
+                    _LOGGER.warning("%s: failed to persist manual override apply_enabled update", DOMAIN)
+
+            return True
+        except Exception:
+            return False
+
+    async def _activate_manual_override(self, primary: str, minutes: int) -> None:
+        now_ms = dt_util.utcnow().timestamp() * 1000.0
+        until_ms = now_ms + max(1, int(minutes)) * 60000.0
+        changed = await self._set_apply_enabled_for_primary(primary, False, until_ms=until_ms)
+        self._schedule_manual_override_timer(primary, until_ms)
+        if changed:
+            await self._schedule_next()
+
+    async def _expire_manual_override(self, primary: str) -> None:
+        try:
+            self._cancel_manual_override_timer(primary)
+            changed = await self._set_apply_enabled_for_primary(primary, True, until_ms=None)
+            if not changed:
+                return
+            schedules, settings = self._get_data()
+            merges = settings.get("merges") or {}
+            targets = [primary]
+            if isinstance(merges, dict):
+                for eid in merges.get(primary, []) or []:
+                    if isinstance(eid, str) and eid not in targets:
+                        targets.append(eid)
+            for target in targets:
+                await self.async_apply_entity_now(target, reconcile=True)
+            await self._schedule_next()
+        except Exception:
+            _LOGGER.debug("ThermostatTimeline manual override expire failed for %s", primary, exc_info=True)
+
+    def _cancel_manual_override_timer(self, primary: str) -> None:
+        unsub = self._manual_override_unsubs.pop(primary, None)
+        if unsub:
+            try:
+                unsub()
+            except Exception:
+                pass
+
+    def _schedule_manual_override_timer(self, primary: str, until_ms: float) -> None:
+        self._cancel_manual_override_timer(primary)
+        try:
+            when = dt_util.utc_from_timestamp(float(until_ms) / 1000.0)
+        except Exception:
+            return
+
+        @callback
+        def _cb(_now):
+            self.hass.async_create_task(self._expire_manual_override(primary))
+
+        self._manual_override_unsubs[primary] = async_track_point_in_utc_time(self.hass, _cb, when)
+
+    def _sync_manual_override_timers(self) -> None:
+        """Sync in-memory timers with persisted manual_override_until_ms map."""
+        _schedules, settings = self._get_data()
+        mo_map = settings.get("manual_override_until_ms", {}) if isinstance(settings.get("manual_override_until_ms"), dict) else {}
+        now_ms = dt_util.utcnow().timestamp() * 1000.0
+
+        active: set[str] = set()
+        expired: list[str] = []
+
+        for primary, until_raw in (mo_map.items() if isinstance(mo_map, dict) else []):
+            if not isinstance(primary, str):
+                continue
+            try:
+                until_ms = float(until_raw)
+            except (TypeError, ValueError):
+                expired.append(primary)
+                continue
+            if until_ms <= now_ms + 250.0:
+                expired.append(primary)
+                continue
+            active.add(primary)
+            self._schedule_manual_override_timer(primary, until_ms)
+
+        for primary in list(self._manual_override_unsubs.keys()):
+            if primary not in active:
+                self._cancel_manual_override_timer(primary)
+
+        for primary in expired:
+            self.hass.async_create_task(self._expire_manual_override(primary))
 
     def _owd_mgr(self):
         """Return the Open Window manager for this instance (if any)."""
@@ -2578,7 +2874,7 @@ class AutoApplyManager:
             self._unsub_boiler_interval = None
     
     def _reset_target_recovery_watch(self):
-        """Reconcile a scheduled entity when its target temperature becomes available."""
+        """Reconcile target-ready entities and detect manual setpoint overrides."""
     
         if self._unsub_targets is not None:
             try:
@@ -2638,18 +2934,86 @@ class AutoApplyManager:
             if new_temp is None:
                 return
     
-            if old_temp is not None:
+            # Case 1: target just became available -> reconcile once.
+            if old_temp is None:
+                _LOGGER.info(
+                    "ThermostatTimeline TARGET READY: %s target=%s -> reconcile",
+                    eid,
+                    new_temp,
+                )
+
+                self.hass.async_create_task(
+                    self.async_apply_entity_now(eid, reconcile=True)
+                )
                 return
-    
-            _LOGGER.info(
-                "ThermostatTimeline TARGET READY: %s target=%s -> reconcile",
-                eid,
-                new_temp,
-            )
-    
-            self.hass.async_create_task(
-                self.async_apply_entity_now(eid, reconcile=True)
-            )
+
+            # Case 2: target changed while available -> possible manual override.
+            try:
+                if abs(float(new_temp) - float(old_temp)) < 0.05:
+                    return
+            except Exception:
+                return
+
+            if not isinstance(eid, str) or not eid.startswith("climate."):
+                return
+
+            try:
+                schedules, settings = self._get_data()
+                enabled, hold_minutes, threshold_c, mode = self._manual_override_config(settings)
+                if not enabled:
+                    return
+                if not self._auto_apply_enabled():
+                    return
+
+                if not self._manual_override_source_match(event, new_state, mode):
+                    return
+
+                merges = settings.get("merges") or {}
+                primary = eid
+                if isinstance(merges, dict):
+                    for p, lst in merges.items():
+                        try:
+                            if eid in (lst or []):
+                                primary = p
+                                break
+                        except Exception:
+                            continue
+
+                desired = self._desired_for(eid, schedules, settings, self._now_min())
+                if desired is None:
+                    return
+
+                try:
+                    u = self.hass.config.units.temperature_unit
+                    ha_is_f = u == UnitOfTemperature.FAHRENHEIT or "F" in str(u).upper()
+                except Exception:
+                    ha_is_f = False
+
+                new_c = _f_to_c(float(new_temp)) if ha_is_f else float(new_temp)
+
+                desired_c = float(desired)
+                su = str((settings or {}).get("storage_temp_unit") or "").upper().strip()
+                if su == "F":
+                    desired_c = _f_to_c(desired_c)
+                elif su != "C":
+                    legacy_u = str((settings or {}).get("temp_unit") or "").upper().strip()
+                    if legacy_u == "F" and desired_c > 45.0:
+                        desired_c = _f_to_c(desired_c)
+
+                if abs(new_c - desired_c) <= float(threshold_c):
+                    return
+
+                _LOGGER.info(
+                    "ThermostatTimeline MANUAL OVERRIDE DETECTED: eid=%s primary=%s actual=%.2fC desired=%.2fC hold=%smin",
+                    eid,
+                    primary,
+                    new_c,
+                    desired_c,
+                    hold_minutes,
+                )
+                self.hass.async_create_task(self._activate_manual_override(primary, hold_minutes))
+            except Exception:
+                _LOGGER.debug("ThermostatTimeline manual override detection failed for %s", eid, exc_info=True)
     
         self._unsub_targets = async_track_state_change_event(
             self.hass,
@@ -3137,7 +3501,7 @@ class AutoApplyManager:
                     eid, desired, primary_for_apply, apply_enabled,
                 )
                 if not apply_enabled:
-                    _LOGGER.warning("ThermostatTimeline apply_setpoint: SKIPPED (apply_enabled=False) for %s", eid)
+                    _LOGGER.debug("ThermostatTimeline apply_setpoint: SKIPPED (apply_enabled=False) for %s", eid)
                     # Mark this as a voluntary skip (not a real failure) so callers
                     # like _maybe_apply_now can avoid logging a misleading
                     # "Auto-apply failed" warning for something that worked exactly

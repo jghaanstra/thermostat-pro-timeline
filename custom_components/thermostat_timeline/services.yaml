@@ -163,6 +163,71 @@ apply_enabled_control:
       selector:
         text: {}
 
+manual_override_control:
+  name: Manual override control
+  description: Configure physical/manual setpoint override handling that temporarily disables schedule apply for a room.
+  fields:
+    action:
+      name: Action
+      description: Enable or disable manual override detection.
+      required: false
+      example: enable
+      selector:
+        select:
+          options:
+            - enable
+            - disable
+          mode: dropdown
+    enabled:
+      name: Enabled
+      description: Optional direct boolean alternative to action.
+      required: false
+      selector:
+        boolean: {}
+    minutes:
+      name: Hold duration (minutes)
+      description: How long schedule apply stays disabled for a room after a detected manual override.
+      required: false
+      example: 60
+      selector:
+        number:
+          min: 1
+          max: 1440
+          step: 1
+          mode: box
+          unit_of_measurement: min
+    threshold_c:
+      name: Detection threshold (degC)
+      description: Minimum absolute difference between current setpoint and scheduled setpoint to treat a change as manual override.
+      required: false
+      example: 0.3
+      selector:
+        number:
+          min: 0
+          max: 5
+          step: 0.1
+          mode: box
+          unit_of_measurement: degC
+    mode:
+      name: Trigger source mode
+      description: Choose which source can trigger manual override detection.
+      required: false
+      example: contextless
+      selector:
+        select:
+          options:
+            - automation
+            - contextless
+            - both
+          mode: dropdown
+    instance_id:
+      name: Instance ID
+      description: Optional. Defaults to active instance when omitted.
+      required: false
+      example: default
+      selector:
+        text: {}
+
 clear:
   name: Clear store
   description: Clear all schedules and bump version.

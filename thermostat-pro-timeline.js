@@ -4485,6 +4485,10 @@ class ThermostatTimelineCard extends HTMLElement {
       show_room_temp: true,
       pause_sensor_enabled: false,
       pause_sensor_entity: '',
+      manual_override_enabled: false,
+      manual_override_minutes: 60,
+      manual_override_threshold_c: 0.3,
+      manual_override_mode: 'contextless',
       labels: {},
       merges: {},              // { [primary_eid]: [linked_eid, ...] }
       temp_sensors: {},        // { [primary_eid]: sensor.temperature_entity_id }
@@ -4760,6 +4764,10 @@ class ThermostatTimelineCard extends HTMLElement {
       show_room_temp: false,
       pause_sensor_enabled: false,
       pause_sensor_entity: false,
+      manual_override_enabled: false,
+      manual_override_minutes: false,
+      manual_override_threshold_c: false,
+      manual_override_mode: false,
       time_12h: false,
       time_source: false,
       temp_unit: false,
@@ -4867,6 +4875,30 @@ class ThermostatTimelineCard extends HTMLElement {
   turn_on: { ...(config.turn_on || {}) },
   apply_enabled: { ...(config.apply_enabled || {}) },
   room_pause: { ...(config.room_pause || {}) },
+  manual_override_enabled: !!(config.manual_override_enabled ?? this._config?.manual_override_enabled ?? false),
+  manual_override_minutes: (()=>{
+    try {
+      const prev = Number(this._config?.manual_override_minutes);
+      const raw = (config.manual_override_minutes === undefined) ? prev : Number(config.manual_override_minutes);
+      const v = Number.isFinite(raw) ? raw : (Number.isFinite(prev) ? prev : 60);
+      return Math.max(1, Math.min(1440, Math.round(v)));
+    } catch { return 60; }
+  })(),
+  manual_override_threshold_c: (()=>{
+    try {
+      const prev = Number(this._config?.manual_override_threshold_c);
+      const raw = (config.manual_override_threshold_c === undefined) ? prev : Number(config.manual_override_threshold_c);
+      const v = Number.isFinite(raw) ? raw : (Number.isFinite(prev) ? prev : 0.3);
+      return Math.max(0, Math.min(5, v));
+    } catch { return 0.3; }
+  })(),
+  manual_override_mode: (()=>{
+    try {
+      const raw = String(config.manual_override_mode ?? this._config?.manual_override_mode ?? 'contextless').toLowerCase().trim();
+      if (raw === 'automation' || raw === 'both' || raw === 'contextless') return raw;
+      return 'contextless';
+    } catch { return 'contextless'; }
+  })(),
   boiler_enabled: !!(config.boiler_enabled ?? this._config?.boiler_enabled ?? false),
   boiler_switch: String(config.boiler_switch ?? this._config?.boiler_switch ?? ''),
   boiler_switch_domain: (()=>{
@@ -5967,6 +5999,13 @@ class ThermostatTimelineCard extends HTMLElement {
             if (typeof s.auto_apply_enabled === 'boolean') this._config.auto_apply = !!s.auto_apply_enabled;
             if (typeof s.apply_on_edit === 'boolean') this._config.apply_on_edit = !!s.apply_on_edit;
             if (typeof s.apply_on_default_change === 'boolean') this._config.apply_on_default_change = !!s.apply_on_default_change;
+            if (typeof s.manual_override_enabled === 'boolean' && !this._yamlProvided?.manual_override_enabled) this._config.manual_override_enabled = !!s.manual_override_enabled;
+            if (Number.isFinite(Number(s.manual_override_minutes)) && !this._yamlProvided?.manual_override_minutes) this._config.manual_override_minutes = Math.max(1, Math.min(1440, Math.round(Number(s.manual_override_minutes))));
+            if (Number.isFinite(Number(s.manual_override_threshold_c)) && !this._yamlProvided?.manual_override_threshold_c) this._config.manual_override_threshold_c = Math.max(0, Math.min(5, Number(s.manual_override_threshold_c)));
+            if (typeof s.manual_override_mode === 'string' && !this._yamlProvided?.manual_override_mode) {
+              const m = String(s.manual_override_mode).toLowerCase().trim();
+              this._config.manual_override_mode = (m === 'automation' || m === 'both' || m === 'contextless') ? m : 'contextless';
+            }
             // Final fallback: if backend omitted or defaulted boiler settings, prefer last local copy to keep UI consistent after hard refresh
             try {
               const rawLocal2 = localStorage.getItem(this._localStoreKey()) || '';
@@ -6302,6 +6341,13 @@ class ThermostatTimelineCard extends HTMLElement {
     if (typeof s.show_room_temp === 'boolean' && !this._yamlProvided?.show_room_temp) this._config.show_room_temp = !!s.show_room_temp;
     if (typeof s.pause_sensor_enabled === 'boolean' && !this._yamlProvided?.pause_sensor_enabled) this._config.pause_sensor_enabled = !!s.pause_sensor_enabled;
     if (typeof s.pause_sensor_entity === 'string' && !this._yamlProvided?.pause_sensor_entity) this._config.pause_sensor_entity = String(s.pause_sensor_entity || '');
+    if (typeof s.manual_override_enabled === 'boolean' && !this._yamlProvided?.manual_override_enabled) this._config.manual_override_enabled = !!s.manual_override_enabled;
+    if (Number.isFinite(Number(s.manual_override_minutes)) && !this._yamlProvided?.manual_override_minutes) this._config.manual_override_minutes = Math.max(1, Math.min(1440, Math.round(Number(s.manual_override_minutes))));
+    if (Number.isFinite(Number(s.manual_override_threshold_c)) && !this._yamlProvided?.manual_override_threshold_c) this._config.manual_override_threshold_c = Math.max(0, Math.min(5, Number(s.manual_override_threshold_c)));
+    if (typeof s.manual_override_mode === 'string' && !this._yamlProvided?.manual_override_mode) {
+      const m = String(s.manual_override_mode).toLowerCase().trim();
+      this._config.manual_override_mode = (m === 'automation' || m === 'both' || m === 'contextless') ? m : 'contextless';
+    }
     if (s.away && typeof s.away === 'object') {
       try {
         const a = s.away;
@@ -6433,6 +6479,10 @@ class ThermostatTimelineCard extends HTMLElement {
               show_room_temp: !!(this._config.show_room_temp ?? true),
               pause_sensor_enabled: !!(this._config.pause_sensor_enabled ?? false),
               pause_sensor_entity: String(this._config.pause_sensor_entity || ''),
+              manual_override_enabled: !!(this._config.manual_override_enabled ?? false),
+              manual_override_minutes: Number(this._config.manual_override_minutes ?? 60),
+              manual_override_threshold_c: Number(this._config.manual_override_threshold_c ?? 0.3),
+              manual_override_mode: String(this._config.manual_override_mode || 'contextless'),
               pause_indef: !!this._pauseIndef,
               pause_until_ms: Number(this._pauseUntilMs||0),
               open_window: this._config.open_window || { enabled:false, sensors:{}, open_delay_min:2, close_delay_min:5 },
@@ -7158,6 +7208,10 @@ class ThermostatTimelineCard extends HTMLElement {
         auto_apply_enabled: !!this._config.auto_apply,
         apply_on_edit: !!this._config.apply_on_edit,
         apply_on_default_change: !!this._config.apply_on_default_change,
+        manual_override_enabled: !!(this._config.manual_override_enabled ?? false),
+        manual_override_minutes: Number(this._config.manual_override_minutes ?? 60),
+        manual_override_threshold_c: Number(this._config.manual_override_threshold_c ?? 0.3),
+        manual_override_mode: String(this._config.manual_override_mode || 'contextless'),
         backup_auto_enabled: !!this._config.backup_auto_enabled,
         backup_interval_days: Number(this._config.backup_interval_days||1),
         profiles_enabled: !!this._config.profiles_enabled,
@@ -9260,6 +9314,35 @@ class ThermostatTimelineCard extends HTMLElement {
                       <div class="desc sp-applydef-desc"></div>
                     </div>
                     <ha-switch class="sp-applydef"></ha-switch>
+                  </div>
+
+                  <div class="setting">
+                    <div class="text">
+                      <div class="title sp-manov-title"></div>
+                      <div class="desc sp-manov-desc"></div>
+                    </div>
+                    <ha-switch class="sp-manov-enable"></ha-switch>
+                  </div>
+
+                  <div class="setting sp-manov-detail-row">
+                    <div class="text">
+                      <div class="title sp-manov-minutes-title"></div>
+                      <div class="desc sp-manov-minutes-desc"></div>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                      <label class="sp-manov-minutes-label" style="opacity:0.8;"></label>
+                      <input class="settings-input sp-manov-minutes" type="number" step="1" min="1" max="1440" style="width:100px;" />
+                      <label class="sp-manov-threshold-label" style="opacity:0.8;"></label>
+                      <input class="settings-input sp-manov-threshold" type="number" step="0.1" min="0" max="5" style="width:100px;" />
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+                      <label class="sp-manov-mode-label" style="opacity:0.8;"></label>
+                      <div class="seg sp-manov-mode">
+                        <button type="button" class="sp-manov-mode-contextless"></button>
+                        <button type="button" class="sp-manov-mode-automation"></button>
+                        <button type="button" class="sp-manov-mode-both"></button>
+                      </div>
+                    </div>
                   </div>
 
                   <div class="setting">
@@ -11445,13 +11528,25 @@ class ThermostatTimelineCard extends HTMLElement {
       const swAuto = qs('.overlay-settings .sp-auto');
       const swApplyEdit = qs('.overlay-settings .sp-applyedit');
       const swApplyDef = qs('.overlay-settings .sp-applydef');
+      const swManOv = qs('.overlay-settings .sp-manov-enable');
       const swPerRoom = qs('.overlay-settings .sp-perroom');
       const swShowRoomTemp = qs('.overlay-settings .sp-showroomtemp');
+      const inManOvMinutes = qs('.overlay-settings .sp-manov-minutes');
+      const inManOvThreshold = qs('.overlay-settings .sp-manov-threshold');
+      const btnModeContextless = qs('.overlay-settings .sp-manov-mode-contextless');
+      const btnModeAutomation = qs('.overlay-settings .sp-manov-mode-automation');
+      const btnModeBoth = qs('.overlay-settings .sp-manov-mode-both');
       if (swAuto) swAuto.onchange = onSw('auto_apply');
       if (swApplyEdit) swApplyEdit.onchange = onSw('apply_on_edit');
       if (swApplyDef) swApplyDef.onchange = onSw('apply_on_default_change');
+      if (swManOv) swManOv.onchange = (e)=>{ try { if (!this._settingsDraft) return; this._settingsDraft.manual_override_enabled = !!e?.target?.checked; this._renderSettingsPopupSettingsTab(); } catch {} };
       if (swPerRoom) swPerRoom.onchange = onSw('per_room_defaults');
       if (swShowRoomTemp) swShowRoomTemp.onchange = onSw('show_room_temp');
+      if (inManOvMinutes) inManOvMinutes.oninput = onNum('manual_override_minutes');
+      if (inManOvThreshold) inManOvThreshold.oninput = onNum('manual_override_threshold_c');
+      if (btnModeContextless) btnModeContextless.onclick = ()=>{ try { if (!this._settingsDraft) return; this._settingsDraft.manual_override_mode = 'contextless'; this._renderSettingsPopupSettingsTab(); } catch {} };
+      if (btnModeAutomation) btnModeAutomation.onclick = ()=>{ try { if (!this._settingsDraft) return; this._settingsDraft.manual_override_mode = 'automation'; this._renderSettingsPopupSettingsTab(); } catch {} };
+      if (btnModeBoth) btnModeBoth.onclick = ()=>{ try { if (!this._settingsDraft) return; this._settingsDraft.manual_override_mode = 'both'; this._renderSettingsPopupSettingsTab(); } catch {} };
 
       // Segmented controls + profiles enable
       const fmt24 = qs('.overlay-settings .sp-fmt24');
@@ -11881,6 +11976,15 @@ class ThermostatTimelineCard extends HTMLElement {
         auto_apply: !!cfg.auto_apply,
         apply_on_edit: !!cfg.apply_on_edit,
         apply_on_default_change: !!cfg.apply_on_default_change,
+        manual_override_enabled: !!(cfg.manual_override_enabled ?? false),
+        manual_override_minutes: this._ttClampNum(cfg.manual_override_minutes, 1, 1440, 60),
+        manual_override_threshold_c: this._ttClampNum(cfg.manual_override_threshold_c, 0, 5, 0.3),
+        manual_override_mode: (()=>{
+          try {
+            const m = String(cfg.manual_override_mode ?? 'contextless').toLowerCase().trim();
+            return (m === 'automation' || m === 'both' || m === 'contextless') ? m : 'contextless';
+          } catch { return 'contextless'; }
+        })(),
         per_room_defaults: !!cfg.per_room_defaults,
         show_pause_button: cfg.show_pause_button !== false,
         show_room_temp: cfg.show_room_temp !== false,
@@ -12112,6 +12216,15 @@ class ThermostatTimelineCard extends HTMLElement {
       cfg.auto_apply = !!d.auto_apply;
       cfg.apply_on_edit = !!d.apply_on_edit;
       cfg.apply_on_default_change = !!d.apply_on_default_change;
+      cfg.manual_override_enabled = !!d.manual_override_enabled;
+      cfg.manual_override_minutes = this._ttClampNum(d.manual_override_minutes, 1, 1440, (cfg.manual_override_minutes ?? 60));
+      cfg.manual_override_threshold_c = this._ttClampNum(d.manual_override_threshold_c, 0, 5, (cfg.manual_override_threshold_c ?? 0.3));
+      cfg.manual_override_mode = (()=>{
+        try {
+          const m = String(d.manual_override_mode || 'contextless').toLowerCase().trim();
+          return (m === 'automation' || m === 'both' || m === 'contextless') ? m : 'contextless';
+        } catch { return 'contextless'; }
+      })();
       cfg.per_room_defaults = !!d.per_room_defaults;
       cfg.show_pause_button = !!d.show_pause_button;
       cfg.show_room_temp = !!d.show_room_temp;
@@ -15848,8 +15961,24 @@ class ThermostatTimelineCard extends HTMLElement {
       setChk('.overlay-settings .sp-auto', d.auto_apply);
       setChk('.overlay-settings .sp-applyedit', d.apply_on_edit);
       setChk('.overlay-settings .sp-applydef', d.apply_on_default_change);
+      setChk('.overlay-settings .sp-manov-enable', d.manual_override_enabled);
+      setVal('.overlay-settings .sp-manov-minutes', this._ttClampNum(d.manual_override_minutes, 1, 1440, 60));
+      setVal('.overlay-settings .sp-manov-threshold', this._ttClampNum(d.manual_override_threshold_c, 0, 5, 0.3));
+      try {
+        const m = String(d.manual_override_mode || 'contextless').toLowerCase().trim();
+        const bCtx = q('.overlay-settings .sp-manov-mode-contextless');
+        const bAuto = q('.overlay-settings .sp-manov-mode-automation');
+        const bBoth = q('.overlay-settings .sp-manov-mode-both');
+        bCtx && bCtx.classList.toggle('active', m === 'contextless');
+        bAuto && bAuto.classList.toggle('active', m === 'automation');
+        bBoth && bBoth.classList.toggle('active', m === 'both');
+      } catch {}
       setChk('.overlay-settings .sp-perroom', d.per_room_defaults);
       setChk('.overlay-settings .sp-showroomtemp', d.show_room_temp);
+      try {
+        const row = q('.overlay-settings .sp-manov-detail-row');
+        if (row) row.style.display = d.manual_override_enabled ? '' : 'none';
+      } catch {}
 
       // Segmented controls: active state
       try {
@@ -15998,6 +16127,15 @@ class ThermostatTimelineCard extends HTMLElement {
       if (!!d.auto_apply !== !!c.auto_apply) return true;
       if (!!d.apply_on_edit !== !!c.apply_on_edit) return true;
       if (!!d.apply_on_default_change !== !!c.apply_on_default_change) return true;
+      if (!!d.manual_override_enabled !== !!(c.manual_override_enabled ?? false)) return true;
+      if (!eqNum(d.manual_override_minutes, this._ttClampNum(c.manual_override_minutes, 1, 1440, 60))) return true;
+      if (!eqNum(d.manual_override_threshold_c, this._ttClampNum(c.manual_override_threshold_c, 0, 5, 0.3))) return true;
+      {
+        const dm = String(d.manual_override_mode || 'contextless').toLowerCase().trim();
+        const cmRaw = String(c.manual_override_mode || 'contextless').toLowerCase().trim();
+        const cm = (cmRaw === 'automation' || cmRaw === 'both' || cmRaw === 'contextless') ? cmRaw : 'contextless';
+        if (dm !== cm) return true;
+      }
       if (!!d.per_room_defaults !== !!c.per_room_defaults) return true;
       if (!!d.show_pause_button !== !!(c.show_pause_button !== false)) return true;
       if (!!d.show_room_temp !== !!(c.show_room_temp !== false)) return true;
@@ -19187,6 +19325,27 @@ class ThermostatTimelineCard extends HTMLElement {
         const dd = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-applydef-desc');
         if (dd) dd.textContent = t('editor.apply_default.desc');
 
+        const mot = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-manov-title');
+        if (mot) mot.textContent = 'Manual override protection';
+        const mod = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-manov-desc');
+        if (mod) mod.textContent = 'When a thermostat setpoint deviates from schedule, temporarily disable schedule apply for this room.';
+        const momt = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-manov-minutes-title');
+        if (momt) momt.textContent = 'Override hold settings';
+        const momd = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-manov-minutes-desc');
+        if (momd) momd.textContent = 'After hold time, schedule apply is enabled again and auto-apply resumes the schedule.';
+        const moml = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-manov-minutes-label');
+        if (moml) moml.textContent = 'Minutes';
+        const moth = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-manov-threshold-label');
+        if (moth) moth.textContent = 'Threshold (degC)';
+        const momode = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-manov-mode-label');
+        if (momode) momode.textContent = 'Trigger source';
+        const momodeCtx = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-manov-mode-contextless');
+        if (momodeCtx) momodeCtx.textContent = 'Contextless';
+        const momodeAuto = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-manov-mode-automation');
+        if (momodeAuto) momodeAuto.textContent = 'Automation';
+        const momodeBoth = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-manov-mode-both');
+        if (momodeBoth) momodeBoth.textContent = 'Both';
+
         const prt = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-perroom-title');
         if (prt) prt.textContent = t('editor.perroom.title');
         const prd = this.shadowRoot && this.shadowRoot.querySelector('.overlay-settings .sp-perroom-desc');
@@ -19635,6 +19794,13 @@ class ThermostatTimelineCardEditor extends HTMLElement {
           if (typeof s.show_pause_button === 'boolean') this._config.show_pause_button = !!s.show_pause_button;
           if (typeof s.pause_sensor_enabled === 'boolean') this._config.pause_sensor_enabled = !!s.pause_sensor_enabled;
           if (typeof s.pause_sensor_entity === 'string') this._config.pause_sensor_entity = String(s.pause_sensor_entity || '');
+          if (typeof s.manual_override_enabled === 'boolean') this._config.manual_override_enabled = !!s.manual_override_enabled;
+          if (Number.isFinite(Number(s.manual_override_minutes))) this._config.manual_override_minutes = Math.max(1, Math.min(1440, Math.round(Number(s.manual_override_minutes))));
+          if (Number.isFinite(Number(s.manual_override_threshold_c))) this._config.manual_override_threshold_c = Math.max(0, Math.min(5, Number(s.manual_override_threshold_c)));
+          if (typeof s.manual_override_mode === 'string') {
+            const m = String(s.manual_override_mode).toLowerCase().trim();
+            this._config.manual_override_mode = (m === 'automation' || m === 'both' || m === 'contextless') ? m : 'contextless';
+          }
           if (typeof s.apply_on_edit === 'boolean') this._config.apply_on_edit = !!s.apply_on_edit;
           if (typeof s.apply_on_default_change === 'boolean') this._config.apply_on_default_change = !!s.apply_on_default_change;
           if (typeof s.per_room_defaults === 'boolean') this._config.per_room_defaults = !!s.per_room_defaults;
@@ -21239,7 +21405,7 @@ class ThermostatTimelineCardEditor extends HTMLElement {
   refresh.onclick = async () => {
           // Persist color settings to local/shared storage so live card instances pick them up
           try {
-            let settings = { time_12h: this._config.time_12h, temp_unit: this._config.temp_unit, time_source: this._config.time_source, row_height: Number(this._config.row_height ?? 64), default_temp: Number(this._config.default_temp || 20), min_temp: Number(this._config.min_temp ?? 5), max_temp: Number(this._config.max_temp ?? 25), per_room_defaults: !!(this._config.per_room_defaults ?? false), apply_on_edit: !!(this._config.apply_on_edit ?? true), apply_on_default_change: !!(this._config.apply_on_default_change ?? true), color_ranges: this._config.color_ranges, color_global: !!this._config.color_global, away: this._config.away, merges: this._config.merges, labels: this._config.labels, temp_sensors: this._config.temp_sensors, profiles_enabled: !!this._config.profiles_enabled, holidays_enabled: !!this._config.holidays_enabled, holidays_source: this._config.holidays_source || 'calendar', holidays_entity: this._config.holidays_entity || '', holidays_dates: Array.isArray(this._config.holidays_dates) ? this._config.holidays_dates : [], sync_mode: (this._config.storage_sync_mode||'instant'), sync_delay_min: Number(this._config.storage_sync_min||0) };
+            let settings = { time_12h: this._config.time_12h, temp_unit: this._config.temp_unit, time_source: this._config.time_source, row_height: Number(this._config.row_height ?? 64), default_temp: Number(this._config.default_temp || 20), min_temp: Number(this._config.min_temp ?? 5), max_temp: Number(this._config.max_temp ?? 25), per_room_defaults: !!(this._config.per_room_defaults ?? false), apply_on_edit: !!(this._config.apply_on_edit ?? true), apply_on_default_change: !!(this._config.apply_on_default_change ?? true), manual_override_enabled: !!(this._config.manual_override_enabled ?? false), manual_override_minutes: Number(this._config.manual_override_minutes ?? 60), manual_override_threshold_c: Number(this._config.manual_override_threshold_c ?? 0.3), manual_override_mode: String(this._config.manual_override_mode || 'contextless'), color_ranges: this._config.color_ranges, color_global: !!this._config.color_global, away: this._config.away, merges: this._config.merges, labels: this._config.labels, temp_sensors: this._config.temp_sensors, profiles_enabled: !!this._config.profiles_enabled, holidays_enabled: !!this._config.holidays_enabled, holidays_source: this._config.holidays_source || 'calendar', holidays_entity: this._config.holidays_entity || '', holidays_dates: Array.isArray(this._config.holidays_dates) ? this._config.holidays_dates : [], sync_mode: (this._config.storage_sync_mode||'instant'), sync_delay_min: Number(this._config.storage_sync_min||0) };
             try {
               if (!this._holidaysToggleTouched) {
                 const st = await this._apiFetchState?.();
@@ -22389,7 +22555,7 @@ class ThermostatTimelineCardEditor extends HTMLElement {
     // These settings are now edited in the in-card popup + stored in shared/local storage,
     // so they should not be emitted into YAML config.
     try {
-      for (const k of ['row_height','default_temp','min_temp','max_temp','auto_apply','apply_on_edit','apply_on_default_change','per_room_defaults','show_pause_button','show_room_temp','pause_sensor_enabled','pause_sensor_entity','presence_sensor_enabled','presence_sensors','presence_sensor_temps','presence_sensor_delays','presence_sensor_delay_units','time_12h','time_source','temp_unit','profiles_enabled','weekdays_enabled','weekdays_view','weekdays_selected_room','boiler_enabled','boiler_switch','boiler_switch_domain','boiler_temp_sensor','boiler_min_temp','boiler_max_temp','boiler_multi_enabled','boiler_room_settings','open_window','color_ranges','color_global','respect_storage_weekdays']) {
+      for (const k of ['row_height','default_temp','min_temp','max_temp','auto_apply','apply_on_edit','apply_on_default_change','manual_override_enabled','manual_override_minutes','manual_override_threshold_c','manual_override_mode','per_room_defaults','show_pause_button','show_room_temp','pause_sensor_enabled','pause_sensor_entity','presence_sensor_enabled','presence_sensors','presence_sensor_temps','presence_sensor_delays','presence_sensor_delay_units','time_12h','time_source','temp_unit','profiles_enabled','weekdays_enabled','weekdays_view','weekdays_selected_room','boiler_enabled','boiler_switch','boiler_switch_domain','boiler_temp_sensor','boiler_min_temp','boiler_max_temp','boiler_multi_enabled','boiler_room_settings','open_window','color_ranges','color_global','respect_storage_weekdays']) {
         if (k in cfg) delete cfg[k];
       }
     } catch {}

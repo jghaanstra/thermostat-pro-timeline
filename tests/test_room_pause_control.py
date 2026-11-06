@@ -281,5 +281,96 @@ class ApplyEnabledControlTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(save_counter["count"], 0)
 
 
+class ManualOverrideControlTests(unittest.IsolatedAsyncioTestCase):
+    def _load_handler(self, hass, save_counter):
+        tree = ast.parse(SOURCE.read_text(encoding="utf-8"))
+        setup_fn = next(
+            n for n in tree.body if isinstance(n, ast.AsyncFunctionDef) and n.name == "async_setup_entry"
+        )
+        needed = {"manual_override_control"}
+        selected = [
+            n
+            for n in setup_fn.body
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name in needed
+        ]
+        self.assertEqual({n.name for n in selected}, needed)
+
+        async def _save_and_broadcast():
+            save_counter["count"] += 1
+
+        def _norm_instance_id(raw: Any) -> str:
+            s = str(raw or "").strip()
+            return s or "default"
+
+        def _ensure_instances_loaded(hass_obj):
+            data = hass_obj.data.setdefault("thermostat_timeline", {})
+            data.setdefault("instances", {"default": {"schedules": {}, "settings": {}}})
+            data.setdefault("active_instance_id", "default")
+
+        glob = {
+            "Any": Any,
+            "ServiceCall": object,
+            "hass": hass,
+            "_save_and_broadcast": _save_and_broadcast,
+            "_norm_instance_id": _norm_instance_id,
+            "_ensure_instances_loaded": _ensure_instances_loaded,
+            "DOMAIN": "thermostat_timeline",
+            "_LOGGER": logging.getLogger(__name__),
+        }
+        exec(compile(ast.Module(body=selected, type_ignores=[]), str(SOURCE), "exec"), glob)
+        return glob["manual_override_control"]
+
+    def _make_hass(self, settings=None, schedules=None, instance_id="default"):
+        if settings is None:
+            settings = {}
+        if schedules is None:
+            schedules = {}
+        inst = {
+            "schedules": schedules,
+            "settings": settings,
+            "weekdays": {},
+            "profiles": {},
+            "colors": {},
+        }
+        return SimpleNamespace(
+            data={
+                "thermostat_timeline": {
+                    "instances": {instance_id: inst},
+                    "active_instance_id": instance_id,
+                    "settings": settings,
+                    "version": 1,
+                    "settings_version": 1,
+                }
+            }
+        )
+
+    async def test_enable_and_update_settings(self):
+        hass = self._make_hass(settings={})
+        save_counter = {"count": 0}
+        handler = self._load_handler(hass, save_counter)
+
+        call = SimpleNamespace(data={"action": "enable", "minutes": 75, "threshold_c": 0.4, "mode": "contextless"})
+        await handler(call)
+
+        st = hass.data["thermostat_timeline"]["instances"]["default"]["settings"]
+        self.assertTrue(st["manual_override_enabled"])
+        self.assertEqual(st["manual_override_minutes"], 75)
+        self.assertAlmostEqual(st["manual_override_threshold_c"], 0.4)
+        self.assertEqual(st["manual_override_mode"], "contextless")
+        self.assertEqual(save_counter["count"], 1)
+
+    async def test_disable_action(self):
+        hass = self._make_hass(settings={"manual_override_enabled": True})
+        save_counter = {"count": 0}
+        handler = self._load_handler(hass, save_counter)
+
+        call = SimpleNamespace(data={"action": "disable"})
+        await handler(call)
+
+        st = hass.data["thermostat_timeline"]["instances"]["default"]["settings"]
+        self.assertFalse(st["manual_override_enabled"])
+        self.assertEqual(save_counter["count"], 1)
+
+
 if __name__ == "__main__":
     unittest.main()

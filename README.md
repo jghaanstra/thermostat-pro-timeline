@@ -1,11 +1,16 @@
 # ❄️ Thermostat Pro Timeline — Integration + Card
-[![hacs\_badge](https://img.shields.io/badge/HACS-Default-blue.svg)](https://hacs.xyz) [![Downloads](https://img.shields.io/github/downloads/qlerup/thermostat-pro-timeline/total)](https://github.com/qlerup/thermostat-pro-timeline/releases)
 
-## Support this project
-
-If you find this project useful, you can support me on Ko-fi 💙  
-
-[![Buy me some debugging time on Ko-fi](https://img.shields.io/badge/%F0%9F%90%9E_Buy_me_some_debugging_time_on-Ko--fi-2ea44f?style=for-the-badge)](https://ko-fi.com/qlerup)
+> [!WARNING]
+> **Disclaimer**
+>
+> This fork adds additional functionality to the original Thermostat Pro Timeline card for Home Assistant. AI was used to add this functionality which I needed for my own use cases. All credits to the original author.
+> 
+> ### Added functionality
+> * Service to enable / disable a schedule per room
+> * Service to temporary pause a schedule per room
+> * Global setting for manual override. This disables the schedule for a room for a certain amount of time when a manual change is detected, either because a manually changing the temperature, through automation or both
+> 
+>  ----
 
 
 ## 📝 Overview
@@ -426,6 +431,28 @@ data:
 	entity_id:
 		- climate.living_room
 		- climate.kitchen
+```
+
+Service: `manual_override_control` — detect manual/physical setpoint changes and temporarily disable schedule apply per room
+
+When enabled, Timeline compares the room's current setpoint with the expected schedule setpoint. If the difference exceeds `threshold_c`, it treats this as a manual override, disables schedule apply for that room, and automatically re-enables it after `minutes`. After re-enable, auto-apply resumes the schedule.
+
+`mode` controls which setpoint change source can trigger manual override:
+- `contextless`: only contextless updates (typically physical thermostat knob changes)
+- `automation`: only updates with Home Assistant context (automation/service/UI driven)
+- `both`: both contextless and automation-context updates
+
+You can configure this globally from the card popup: **Settings -> Manual override protection**.
+
+Example (enable manual override handling with 60-minute hold):
+
+```yaml
+service: thermostat_timeline.manual_override_control
+data:
+	action: enable
+	minutes: 60
+	threshold_c: 0.3
+	mode: contextless
 ```
 
 Utilities
