@@ -2253,7 +2253,19 @@ class AutoApplyManager:
                 out.add(e)
         return out
 
-    def _desired_for(self, eid: str, schedules: dict, settings: dict, now_min: int) -> Optional[float]:
+    def _normalize_block_hvac_mode(self, value: Any) -> str | None:
+        try:
+            if value is None:
+                return None
+            v = str(value).strip().lower()
+            if v in ("", "none", "no_change", "no-change", "unchanged", "dont_change", "don't_change"):
+                return None
+            allowed = {"off", "heat", "cool", "auto", "heat_cool", "dry", "fan_only"}
+            return v if v in allowed else None
+        except Exception:
+            return None
+
+    def _desired_for_payload(self, eid: str, schedules: dict, settings: dict, now_min: int) -> tuple[Optional[float], Optional[str]]:
         # Resolve primary (merged)
         merges = settings.get("merges") or {}
         primary = None
@@ -2294,12 +2306,15 @@ class AutoApplyManager:
             except Exception:
                 continue
         # Base desired setpoint
+        desired_hvac_mode = None
         if hit is not None:
             v = hit.get("temp") if isinstance(hit, dict) else None
             if isinstance(v, (int, float, str)):
                 want = float(v)
             else:
                 want = float(row.get("defaultTemp", 20))
+            if isinstance(hit, dict):
+                desired_hvac_mode = self._normalize_block_hvac_mode(hit.get("hvacMode"))
         else:
             # When advanced presence is active but this room has no presence schedule,
             # use Away temperature instead of the room default.
@@ -2364,6 +2379,10 @@ class AutoApplyManager:
                 want = min(want, float(mx))
         except Exception:
             pass
+        return want, desired_hvac_mode
+
+    def _desired_for(self, eid: str, schedules: dict, settings: dict, now_min: int) -> Optional[float]:
+        want, _mode = self._desired_for_payload(eid, schedules, settings, now_min)
         return want
 
     async def _maybe_apply_now(self, force: bool = False, boundary_only: bool = False, reconcile: bool = False):
@@ -2408,7 +2427,7 @@ class AutoApplyManager:
                 except Exception:
                     # if in doubt, skip to avoid overriding manual changes unnecessarily
                     continue
-            desired = self._desired_for(eid, schedules, settings, now_min)
+            desired, desired_hvac_mode = self._desired_for_payload(eid, schedules, settings, now_min)
             if desired is None:
                 continue
             # Only apply when desired setpoint changes for this entity.
@@ -2424,7 +2443,11 @@ class AutoApplyManager:
                 last_temp = float(lt) if isinstance(lt, (int, float, str)) else None
             except Exception:
                 last_temp = None
-            schedule_unchanged = (last_temp is not None) and abs(last_temp - float(desired)) < 0.05
+            try:
+                last_mode = self._normalize_block_hvac_mode(last.get("hvac_mode"))
+            except Exception:
+                last_mode = None
+            schedule_unchanged = (last_temp is not None) and abs(last_temp - float(desired)) < 0.05 and (last_mode == desired_hvac_mode)
             if (not reconcile) and schedule_unchanged:
                 continue
             # Manual override guard: only relevant when OUR desired value for this
@@ -2525,12 +2548,22 @@ class AutoApplyManager:
                     if isinstance(v, (int, float)):
                         cur = float(v)
                         break
-            if cur is not None and abs(cur - float(desired)) < 0.05:
-                self._last_applied[eid] = {"min": now_min, "temp": float(desired)}
+            cur_mode = None
+            if isinstance(eid, str) and eid.startswith("climate."):
+                try:
+                    st_mode = self.hass.states.get(eid)
+                    attrs_mode = st_mode.attributes if st_mode else {}
+                    cur_mode = self._normalize_block_hvac_mode((attrs_mode or {}).get("hvac_mode", st_mode.state if st_mode else None))
+                except Exception:
+                    cur_mode = None
+            temp_matches = (cur is not None and abs(cur - float(desired)) < 0.05)
+            mode_matches = (desired_hvac_mode is None) or (cur_mode == desired_hvac_mode)
+            if temp_matches and mode_matches:
+                self._last_applied[eid] = {"min": now_min, "temp": float(desired), "hvac_mode": desired_hvac_mode}
                 continue
-            ok = await self._apply_setpoint(eid, float(desired))
+            ok = await self._apply_setpoint(eid, float(desired), desired_hvac_mode=desired_hvac_mode)
             if ok:
-                self._last_applied[eid] = {"min": now_min, "temp": float(desired)}
+                self._last_applied[eid] = {"min": now_min, "temp": float(desired), "hvac_mode": desired_hvac_mode}
             elif getattr(self, "_last_apply_skipped_voluntarily", False):
                 # Not a real failure: the room has "Apply schedule to this
                 # thermostat" disabled. Nothing to warn about here.
@@ -2563,7 +2596,7 @@ class AutoApplyManager:
 
             schedules, settings = self._get_data()
             now_min = self._now_min()
-            desired = self._desired_for(eid, schedules, settings, now_min)
+            desired, desired_hvac_mode = self._desired_for_payload(eid, schedules, settings, now_min)
             if desired is None:
                 return
 
@@ -2574,12 +2607,16 @@ class AutoApplyManager:
                     last_temp = float(lt) if isinstance(lt, (int, float, str)) else None
                 except Exception:
                     last_temp = None
-                if (last_temp is not None) and abs(last_temp - float(desired)) < 0.05:
+                try:
+                    last_mode = self._normalize_block_hvac_mode(last.get("hvac_mode"))
+                except Exception:
+                    last_mode = None
+                if (last_temp is not None) and abs(last_temp - float(desired)) < 0.05 and (last_mode == desired_hvac_mode):
                     return
 
-            ok = await self._apply_setpoint(eid, float(desired))
+            ok = await self._apply_setpoint(eid, float(desired), desired_hvac_mode=desired_hvac_mode)
             if ok:
-                self._last_applied[eid] = {"min": now_min, "temp": float(desired)}
+                self._last_applied[eid] = {"min": now_min, "temp": float(desired), "hvac_mode": desired_hvac_mode}
         except Exception:
             return
 
@@ -3446,7 +3483,7 @@ class AutoApplyManager:
             pass
         return False
 
-    async def _apply_setpoint(self, eid: str, desired: float) -> bool:
+    async def _apply_setpoint(self, eid: str, desired: float, desired_hvac_mode: Optional[str] = None) -> bool:
         """Apply desired setpoint robustly across HVAC modes.
 
         Strategy:
@@ -3687,6 +3724,27 @@ class AutoApplyManager:
                     await self.hass.services.async_call(
                         "climate", "set_preset_mode", {"entity_id": eid, "preset_mode": want_preset}, blocking=False
                     )
+            except Exception:
+                pass
+
+            # Optional per-block mode override: mode first, then short delay, then temperature.
+            try:
+                requested_mode = self._normalize_block_hvac_mode(desired_hvac_mode)
+                if requested_mode and requested_mode != hvac_mode and requested_mode in hvac_modes:
+                    await self.hass.services.async_call(
+                        "climate", "set_hvac_mode", {"entity_id": eid, "hvac_mode": requested_mode}, blocking=False
+                    )
+                    hvac_mode = requested_mode
+                    try:
+                        mode_delay_s = float(settings.get("hvac_mode_delay_s", 1.0))
+                    except Exception:
+                        mode_delay_s = 1.0
+                    mode_delay_s = max(0.0, min(5.0, mode_delay_s))
+                    if mode_delay_s > 0:
+                        try:
+                            await asyncio.sleep(mode_delay_s)
+                        except Exception:
+                            pass
             except Exception:
                 pass
 

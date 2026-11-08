@@ -15,6 +15,15 @@ const TT_I18N = {
     'ui.from': 'From',
     'ui.to': 'To',
     'ui.temperature': 'Temperature',
+    'ui.hvac_mode': 'HVAC mode',
+    'ui.hvac_mode_no_change': 'Do not change',
+    'ui.hvac_mode_off': 'Off',
+    'ui.hvac_mode_heat': 'Heat',
+    'ui.hvac_mode_cool': 'Cool',
+    'ui.hvac_mode_auto': 'Auto',
+    'ui.hvac_mode_heat_cool': 'Heat/Cool',
+    'ui.hvac_mode_dry': 'Dry',
+    'ui.hvac_mode_fan_only': 'Fan only',
     'ui.delete': 'Delete',
     'ui.cancel': 'Cancel',
     'ui.close': 'Close',
@@ -428,6 +437,15 @@ const TT_I18N = {
     'ui.from': 'From',
     'ui.to': 'To',
     'ui.temperature': 'Temperatur',
+    'ui.hvac_mode': 'HVAC-tilstand',
+    'ui.hvac_mode_no_change': 'Skift ikke',
+    'ui.hvac_mode_off': 'Slukket',
+    'ui.hvac_mode_heat': 'Varme',
+    'ui.hvac_mode_cool': 'Køling',
+    'ui.hvac_mode_auto': 'Auto',
+    'ui.hvac_mode_heat_cool': 'Varme/Køling',
+    'ui.hvac_mode_dry': 'Affugtning',
+    'ui.hvac_mode_fan_only': 'Kun ventilator',
     'ui.delete': 'Slet',
     'ui.cancel': 'Annuller',
     'ui.close': 'Luk',
@@ -809,6 +827,15 @@ const TT_I18N = {
     'ui.from': 'Från',
     'ui.to': 'Till',
     'ui.temperature': 'Temperatur',
+    'ui.hvac_mode': 'HVAC-läge',
+    'ui.hvac_mode_no_change': 'Ändra inte',
+    'ui.hvac_mode_off': 'Av',
+    'ui.hvac_mode_heat': 'Värme',
+    'ui.hvac_mode_cool': 'Kyla',
+    'ui.hvac_mode_auto': 'Auto',
+    'ui.hvac_mode_heat_cool': 'Värme/Kyla',
+    'ui.hvac_mode_dry': 'Avfuktning',
+    'ui.hvac_mode_fan_only': 'Endast fläkt',
     'ui.delete': 'Ta bort',
   'ui.cancel': 'Avbryt',
   'ui.close': 'Stäng',
@@ -1168,6 +1195,15 @@ const TT_I18N = {
     'ui.from': 'Fra',
     'ui.to': 'Til',
     'ui.temperature': 'Temperatur',
+    'ui.hvac_mode': 'HVAC-modus',
+    'ui.hvac_mode_no_change': 'Ikke endre',
+    'ui.hvac_mode_off': 'Av',
+    'ui.hvac_mode_heat': 'Varme',
+    'ui.hvac_mode_cool': 'Kjøling',
+    'ui.hvac_mode_auto': 'Auto',
+    'ui.hvac_mode_heat_cool': 'Varme/Kjøling',
+    'ui.hvac_mode_dry': 'Avfukting',
+    'ui.hvac_mode_fan_only': 'Kun vifte',
     'ui.delete': 'Slett',
   'ui.cancel': 'Avbryt',
   'ui.close': 'Lukk',
@@ -1525,6 +1561,15 @@ const TT_I18N = {
     'ui.from': 'Von',
     'ui.to': 'Bis',
     'ui.temperature': 'Temperatur',
+    'ui.hvac_mode': 'HVAC-Modus',
+    'ui.hvac_mode_no_change': 'Nicht ändern',
+    'ui.hvac_mode_off': 'Aus',
+    'ui.hvac_mode_heat': 'Heizen',
+    'ui.hvac_mode_cool': 'Kühlen',
+    'ui.hvac_mode_auto': 'Auto',
+    'ui.hvac_mode_heat_cool': 'Heizen/Kühlen',
+    'ui.hvac_mode_dry': 'Entfeuchten',
+    'ui.hvac_mode_fan_only': 'Nur Lüfter',
     'ui.delete': 'Löschen',
   'ui.cancel': 'Abbrechen',
   'ui.close': 'Schließen',
@@ -1881,6 +1926,15 @@ const TT_I18N = {
     'ui.from': 'Desde',
     'ui.to': 'Hasta',
     'ui.temperature': 'Temperatura',
+    'ui.hvac_mode': 'Modo HVAC',
+    'ui.hvac_mode_no_change': 'No cambiar',
+    'ui.hvac_mode_off': 'Apagado',
+    'ui.hvac_mode_heat': 'Calefacción',
+    'ui.hvac_mode_cool': 'Refrigeración',
+    'ui.hvac_mode_auto': 'Auto',
+    'ui.hvac_mode_heat_cool': 'Calefacción/Refrigeración',
+    'ui.hvac_mode_dry': 'Deshumidificación',
+    'ui.hvac_mode_fan_only': 'Solo ventilador',
     'ui.delete': 'Eliminar',
   'ui.cancel': 'Cancelar',
   'ui.close': 'Cerrar',
@@ -2237,6 +2291,15 @@ const TT_I18N = {
     'ui.from': 'De',
     'ui.to': 'À',
     'ui.temperature': 'Température',
+    'ui.hvac_mode': 'Mode HVAC',
+    'ui.hvac_mode_no_change': 'Ne pas modifier',
+    'ui.hvac_mode_off': 'Arrêt',
+    'ui.hvac_mode_heat': 'Chauffage',
+    'ui.hvac_mode_cool': 'Refroidissement',
+    'ui.hvac_mode_auto': 'Auto',
+    'ui.hvac_mode_heat_cool': 'Chauffage/Refroidissement',
+    'ui.hvac_mode_dry': 'Déshumidification',
+    'ui.hvac_mode_fan_only': 'Ventilation seule',
     'ui.delete': 'Supprimer',
   'ui.cancel': 'Annuler',
   'ui.close': 'Fermer',
@@ -2586,6 +2649,15 @@ const TT_I18N = {
     'ui.from': 'Da',
     'ui.to': 'A',
     'ui.temperature': 'Temperatura',
+    'ui.hvac_mode': 'Modalità HVAC',
+    'ui.hvac_mode_no_change': 'Non modificare',
+    'ui.hvac_mode_off': 'Spento',
+    'ui.hvac_mode_heat': 'Riscaldamento',
+    'ui.hvac_mode_cool': 'Raffreddamento',
+    'ui.hvac_mode_auto': 'Auto',
+    'ui.hvac_mode_heat_cool': 'Riscaldamento/Raffreddamento',
+    'ui.hvac_mode_dry': 'Deumidificazione',
+    'ui.hvac_mode_fan_only': 'Solo ventilazione',
     'ui.delete': 'Elimina',
   'ui.cancel': 'Annulla',
   'ui.close': 'Chiudi',
@@ -2940,6 +3012,15 @@ const TT_I18N = {
     'ui.from': 'Alkaen',
     'ui.to': 'Asti',
     'ui.temperature': 'Lämpötila',
+    'ui.hvac_mode': 'HVAC-tila',
+    'ui.hvac_mode_no_change': 'Älä muuta',
+    'ui.hvac_mode_off': 'Pois',
+    'ui.hvac_mode_heat': 'Lämmitys',
+    'ui.hvac_mode_cool': 'Jäähdytys',
+    'ui.hvac_mode_auto': 'Auto',
+    'ui.hvac_mode_heat_cool': 'Lämmitys/Jäähdytys',
+    'ui.hvac_mode_dry': 'Kuivaus',
+    'ui.hvac_mode_fan_only': 'Vain puhallin',
     'ui.delete': 'Poista',
   'ui.cancel': 'Peruuta',
   'ui.close': 'Sulje',
@@ -3298,6 +3379,15 @@ const TT_I18N = {
     'ui.from': 'Od',
     'ui.to': 'Do',
     'ui.temperature': 'Teplota',
+    'ui.hvac_mode': 'Režim HVAC',
+    'ui.hvac_mode_no_change': 'Neměnit',
+    'ui.hvac_mode_off': 'Vypnuto',
+    'ui.hvac_mode_heat': 'Topení',
+    'ui.hvac_mode_cool': 'Chlazení',
+    'ui.hvac_mode_auto': 'Auto',
+    'ui.hvac_mode_heat_cool': 'Topení/Chlazení',
+    'ui.hvac_mode_dry': 'Odvlhčování',
+    'ui.hvac_mode_fan_only': 'Pouze ventilátor',
     'ui.delete': 'Smazat',
   'ui.cancel': 'Zrušit',
   'ui.close': 'Zavřít',
@@ -3675,6 +3765,15 @@ const TT_I18N = {
     'ui.from': 'Od',
     'ui.to': 'Do',
     'ui.temperature': 'Temperatura',
+    'ui.hvac_mode': 'Način HVAC',
+    'ui.hvac_mode_no_change': 'Ne spreminjaj',
+    'ui.hvac_mode_off': 'Izklop',
+    'ui.hvac_mode_heat': 'Ogrevanje',
+    'ui.hvac_mode_cool': 'Hlajenje',
+    'ui.hvac_mode_auto': 'Samodejno',
+    'ui.hvac_mode_heat_cool': 'Ogrevanje/Hlajenje',
+    'ui.hvac_mode_dry': 'Razvlaževanje',
+    'ui.hvac_mode_fan_only': 'Samo ventilator',
     'ui.delete': 'Izbriši',
   'ui.cancel': 'Prekliči',
   'ui.close': 'Zapri',
@@ -4029,6 +4128,15 @@ const TT_I18N = {
     'ui.from': 'De la',
     'ui.to': 'Până la',
     'ui.temperature': 'Temperatură',
+    'ui.hvac_mode': 'Mod HVAC',
+    'ui.hvac_mode_no_change': 'Nu modifica',
+    'ui.hvac_mode_off': 'Oprit',
+    'ui.hvac_mode_heat': 'Încălzire',
+    'ui.hvac_mode_cool': 'Răcire',
+    'ui.hvac_mode_auto': 'Auto',
+    'ui.hvac_mode_heat_cool': 'Încălzire/Răcire',
+    'ui.hvac_mode_dry': 'Dezumidificare',
+    'ui.hvac_mode_fan_only': 'Doar ventilator',
     'ui.delete': 'Șterge',
     'ui.cancel': 'Anulează',
     'ui.close': 'Închide',
@@ -7458,7 +7566,7 @@ class ThermostatTimelineCard extends HTMLElement {
   _copyMainToWeekdays(mode, target){
     try {
       const m = (mode === 'weekday_sat_sun' || mode === 'all_7') ? mode : 'weekday_weekend';
-      const makeBlocks = (arr)=> (Array.isArray(arr) ? arr.map(b=>({ id: Math.random().toString(36).slice(2,9), startMin: b.startMin, endMin: b.endMin, temp: b.temp })) : []);
+      const makeBlocks = (arr)=> (Array.isArray(arr) ? arr.map(b=>({ id: Math.random().toString(36).slice(2,9), startMin: b.startMin, endMin: b.endMin, temp: b.temp, hvacMode: this._normalizeBlockHvacMode(b.hvacMode) || undefined })) : []);
       const names = this._weekdayNames();
       const t = String(target || '').toLowerCase().trim();
       for (const eid of (this._config?.entities || [])) {
@@ -7689,6 +7797,106 @@ class ThermostatTimelineCard extends HTMLElement {
       for (const l of (merges[p]||[])) out.add(l);
     }
     return Array.from(out);
+  }
+
+  _normalizeBlockHvacMode(value){
+    try {
+      if (value === null || value === undefined) return null;
+      const v = String(value).trim().toLowerCase();
+      if (!v || v === 'none' || v === 'no_change' || v === 'no-change') return null;
+      const allowed = new Set(['off','heat','cool','auto','heat_cool','dry','fan_only']);
+      return allowed.has(v) ? v : null;
+    } catch { return null; }
+  }
+
+  _hvacModeLabel(mode){
+    try {
+      const m = this._normalizeBlockHvacMode(mode);
+      if (!m) return this._t('ui.hvac_mode_no_change') || 'Do not change';
+      const k = 'ui.hvac_mode_' + m;
+      const lbl = this._t(k);
+      if (lbl && lbl !== k) return lbl;
+      return m.replace(/_/g, ' ');
+    } catch {
+      return String(mode || '');
+    }
+  }
+
+  _hvacModesForEntity(eid){
+    try {
+      if (!String(eid||'').startsWith('climate.')) return [];
+      const st = this._hass?.states?.[eid];
+      const arr = Array.isArray(st?.attributes?.hvac_modes) ? st.attributes.hvac_modes : [];
+      const out = [];
+      for (const m of arr){
+        const v = this._normalizeBlockHvacMode(m);
+        if (v && !out.includes(v)) out.push(v);
+      }
+      return out;
+    } catch { return []; }
+  }
+
+  _ensureEditorHvacControls(entity, block=null){
+    try {
+      const modal = this.shadowRoot?.querySelector('.overlay .modal:not(.modal-week)');
+      if (!modal) return;
+      let row = modal.querySelector('.ed-hvac-row');
+      if (!row) {
+        row = document.createElement('div');
+        row.className = 'ed-hvac-row';
+        row.style.display = 'grid';
+        row.style.gap = '6px';
+        const lab = document.createElement('label');
+        lab.className = 'label ed-hvac-label';
+        lab.textContent = this._t('ui.hvac_mode') || 'HVAC mode';
+        const sel = document.createElement('select');
+        sel.className = 'ed-hvac';
+        sel.style.height = '34px';
+        sel.style.border = '1px solid var(--divider-color)';
+        sel.style.borderRadius = '8px';
+        sel.style.background = 'var(--card-background-color)';
+        sel.style.color = 'var(--primary-text-color)';
+        sel.style.padding = '0 10px';
+        row.append(lab, sel);
+        const err = modal.querySelector('.ed-error');
+        if (err && err.parentElement) err.parentElement.insertBefore(row, err);
+        else modal.append(row);
+      }
+
+      const modes = this._hvacModesForEntity(entity);
+      const sel = row.querySelector('.ed-hvac');
+      const show = String(entity||'').startsWith('climate.') && modes.length > 0;
+      row.style.display = show ? '' : 'none';
+      if (!show || !sel) return;
+      try {
+        const lab = row.querySelector('.ed-hvac-label');
+        if (lab) lab.textContent = this._t('ui.hvac_mode') || 'HVAC mode';
+      } catch {}
+
+      sel.innerHTML = '';
+      const optNone = document.createElement('option');
+      optNone.value = 'none';
+      optNone.textContent = this._hvacModeLabel(null);
+      sel.append(optNone);
+      for (const m of modes){
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = this._hvacModeLabel(m);
+        sel.append(opt);
+      }
+      const hv = this._normalizeBlockHvacMode(block?.hvacMode);
+      sel.value = hv && modes.includes(hv) ? hv : 'none';
+    } catch {}
+  }
+
+  _editorSelectedHvacMode(entity){
+    try {
+      if (!String(entity||'').startsWith('climate.')) return null;
+      const sel = this.shadowRoot?.querySelector('.ed-hvac');
+      const row = this.shadowRoot?.querySelector('.ed-hvac-row');
+      if (!sel || !row || row.style.display === 'none') return null;
+      return this._normalizeBlockHvacMode(sel.value);
+    } catch { return null; }
   }
 
   _desiredTempFor(eid, nowMin){ const primary = this._groupPrimaryOf(eid); const row = this._schedules[primary]; if (!row) return null; this._ensureHolidayStruct(row); this._ensurePresenceStruct(row); let blocks = row.blocks||[]; let usedPresence = false; let usedHoliday = false; let presenceKeyActive = null; let presenceHasBlocksForRoom = false;
@@ -10711,7 +10919,7 @@ class ThermostatTimelineCard extends HTMLElement {
 
               try {
                 const dayBlocks = getBlocks(dayKey);
-                const payload = dayBlocks.map(b=>({ startMin:b.startMin, endMin:b.endMin, temp:b.temp }));
+                const payload = dayBlocks.map(b=>({ startMin:b.startMin, endMin:b.endMin, temp:b.temp, hvacMode: this._normalizeBlockHvacMode(b.hvacMode) || undefined }));
                 this._copyFrom = eid_day;
                 this._copyPayload = payload;
                 this._render();
@@ -11059,7 +11267,7 @@ class ThermostatTimelineCard extends HTMLElement {
         // Start copy from this row
         try {
           const row = this._schedules[eid] || { defaultTemp: this._config.default_temp, blocks: [] };
-          const payload = { defaultTemp: row.defaultTemp, blocks: (row.blocks||[]).map(b=>({ startMin:b.startMin, endMin:b.endMin, temp:b.temp })), weekly: row.weekly ? JSON.parse(JSON.stringify(row.weekly)) : undefined, weekly_modes: row.weekly_modes ? JSON.parse(JSON.stringify(row.weekly_modes)) : undefined };
+          const payload = { defaultTemp: row.defaultTemp, blocks: (row.blocks||[]).map(b=>({ startMin:b.startMin, endMin:b.endMin, temp:b.temp, hvacMode: this._normalizeBlockHvacMode(b.hvacMode) || undefined })), weekly: row.weekly ? JSON.parse(JSON.stringify(row.weekly)) : undefined, weekly_modes: row.weekly_modes ? JSON.parse(JSON.stringify(row.weekly_modes)) : undefined };
           this._copyFrom = eid; this._copyPayload = payload;
           this._render();
         } catch(e){}
@@ -16772,6 +16980,7 @@ class ThermostatTimelineCard extends HTMLElement {
     const title = this.shadowRoot.querySelector('.modal h3');
     const delBtn = this.shadowRoot.querySelector('.ed-delete');
   if (edTemp) { edTemp.value = String(this._toDisplayTemp(b.temp)); edTemp.max = String(this._maxDisplay()); edTemp.min = String(this._minDisplay()); }
+  try { this._ensureEditorHvacControls(entity, b); } catch {}
     if (this._config?.time_12h) {
       if (edFrom) edFrom.value = this._toTimeInput12h(b.startMin);
       if (edTo) edTo.value = this._toTimeInput12h(b.endMin);
@@ -17087,7 +17296,7 @@ class ThermostatTimelineCard extends HTMLElement {
     }
     this._deleteBlock(entity, blockId); this._closeEditor(); }
 
-  _openNewEditor(entity){ this._ensureEditModeOn(); this._editing = { entity, blockId: null }; const row = this._schedules[entity]; if (!row) return; const edTemp = this.shadowRoot.querySelector(".ed-temp"); const edFrom = this.shadowRoot.querySelector(".ed-from"); const edTo   = this.shadowRoot.querySelector(".ed-to"); const overlay = this.shadowRoot.querySelector(".overlay"); const now = this._getNowMin(); const start = this._clamp(Math.round(now), 0, 1380); const end = this._clamp(start + 60, start + 15, 1440); if (edTemp) edTemp.value = String(this._toDisplayTemp(row.defaultTemp ?? 20)); if (edFrom) edFrom.value = this._toTimeInput(start); if (edTo)   edTo.value   = this._toTimeInput(end); const title = this.shadowRoot.querySelector('.modal h3'); if (title) title.textContent = this._t('ui.add_block'); const delBtn = this.shadowRoot.querySelector('.ed-delete'); if (delBtn) delBtn.style.display = 'none'; const err = this.shadowRoot.querySelector(".ed-error"); if (err) { err.style.display = "none"; err.textContent = ""; }
+  _openNewEditor(entity){ this._ensureEditModeOn(); this._editing = { entity, blockId: null }; const row = this._schedules[entity]; if (!row) return; const edTemp = this.shadowRoot.querySelector(".ed-temp"); const edFrom = this.shadowRoot.querySelector(".ed-from"); const edTo   = this.shadowRoot.querySelector(".ed-to"); const overlay = this.shadowRoot.querySelector(".overlay"); const now = this._getNowMin(); const start = this._clamp(Math.round(now), 0, 1380); const end = this._clamp(start + 60, start + 15, 1440); if (edTemp) edTemp.value = String(this._toDisplayTemp(row.defaultTemp ?? 20)); if (edFrom) edFrom.value = this._toTimeInput(start); if (edTo)   edTo.value   = this._toTimeInput(end); const title = this.shadowRoot.querySelector('.modal h3'); if (title) title.textContent = this._t('ui.add_block'); const delBtn = this.shadowRoot.querySelector('.ed-delete'); if (delBtn) delBtn.style.display = 'none'; const err = this.shadowRoot.querySelector(".ed-error"); if (err) { err.style.display = "none"; err.textContent = ""; } try { this._ensureEditorHvacControls(entity, null); } catch {}
   /* popups visible: continue */
   // Hide any tooltips while editing
   try { const tips = this.shadowRoot.querySelectorAll('.wk-tooltip'); tips.forEach(t => { try { if (t._hideTimer) clearTimeout(t._hideTimer); } catch {} t.style.display='none'; }); } catch {}
@@ -17895,12 +18104,14 @@ class ThermostatTimelineCard extends HTMLElement {
         const now = Number.isFinite(atMin) ? atMin : this._getNowMin(); const start = this._clamp(Math.round(now), 0, 1380); const end = this._clamp(start+60, start+15, 1440);
   this._editing = { entity: eid, blockId: null, profileName: (name || '__new__') };
         if (edTemp) { const base = Number(row.defaultTemp||this._config.default_temp||20); edTemp.value = String(this._toDisplayTemp(base)); edTemp.max = String(this._maxDisplay()); edTemp.min = String(this._minDisplay()); }
+        try { this._ensureEditorHvacControls(eid, null); } catch {}
         if (this._config?.time_12h) { if (edFrom) edFrom.value=this._toTimeInput12h(start); if (edTo) edTo.value=this._toTimeInput12h(end); if (fromMer){ fromMer.style.display=''; fromMer.value=(start>=720)?'PM':'AM'; } if (toMer){ toMer.style.display=''; toMer.value=(end>=720 && end<1440)?'PM':'AM'; } } else { if (edFrom) edFrom.value=this._toTimeInput(start); if (edTo) edTo.value=this._toTimeInput(end); if (fromMer) fromMer.style.display='none'; if (toMer) toMer.style.display='none'; }
         if (title) title.textContent = this._t('ui.add_block'); if (delBtn) delBtn.style.display='none'; if (err){ err.style.display='none'; err.textContent=''; }
       } else {
         const b = arr.find(x=>x.id===blockId); if (!b) return;
   this._editing = { entity: eid, blockId, profileName: (name || '__new__') };
         if (edTemp) { edTemp.value = String(this._toDisplayTemp(b.temp)); edTemp.max = String(this._maxDisplay()); edTemp.min = String(this._minDisplay()); }
+        try { this._ensureEditorHvacControls(eid, b); } catch {}
         if (this._config?.time_12h) { if (edFrom) edFrom.value=this._toTimeInput12h(b.startMin); if (edTo) edTo.value=this._toTimeInput12h(b.endMin); if (fromMer){ fromMer.style.display=''; fromMer.value=(b.startMin>=720)?'PM':'AM'; } if (toMer){ toMer.style.display=''; toMer.value=(b.endMin>=720 && b.endMin<1440)?'PM':'AM'; } } else { if (edFrom) edFrom.value=this._toTimeInput(b.startMin); if (edTo) edTo.value=this._toTimeInput(b.endMin); if (fromMer) fromMer.style.display='none'; if (toMer) toMer.style.display='none'; }
         if (title) title.textContent = this._t('ui.edit_block'); if (delBtn) delBtn.style.display=''; if (err){ err.style.display='none'; err.textContent=''; }
       }
@@ -18041,6 +18252,7 @@ class ThermostatTimelineCard extends HTMLElement {
   // Hide any tooltips while editing
   try { const tips = this.shadowRoot.querySelectorAll('.wk-tooltip'); tips.forEach(t => { try { if (t._hideTimer) clearTimeout(t._hideTimer); } catch {} t.style.display='none'; }); } catch {}
   if (edTemp) { edTemp.value = String(this._toDisplayTemp(row.defaultTemp||20)); edTemp.max= String(this._maxDisplay()); }
+      try { this._ensureEditorHvacControls(this._weeklyEntity, null); } catch {}
       if (this._config?.time_12h) {
         if (edFrom) edFrom.value = this._toTimeInput12h(start);
         if (edTo) edTo.value = this._toTimeInput12h(end);
@@ -18077,6 +18289,7 @@ class ThermostatTimelineCard extends HTMLElement {
   // Hide any tooltips while editing
   try { const tips = this.shadowRoot.querySelectorAll('.wk-tooltip'); tips.forEach(t => { try { if (t._hideTimer) clearTimeout(t._hideTimer); } catch {} t.style.display='none'; }); } catch {}
   if (edTemp) { edTemp.value = String(this._toDisplayTemp(b.temp)); edTemp.max= String(this._maxDisplay()); }
+      try { this._ensureEditorHvacControls(this._weeklyEntity, b); } catch {}
       if (this._config?.time_12h) {
         if (edFrom) edFrom.value = this._toTimeInput12h(b.startMin);
         if (edTo) edTo.value = this._toTimeInput12h(b.endMin);
@@ -18409,8 +18622,8 @@ class ThermostatTimelineCard extends HTMLElement {
     const arr = (this._presenceDraft.rooms||{})[eid] || [];
     const row = this._schedules[eid] || { defaultTemp: this._config.default_temp, blocks: [] };
     const edTemp = this.shadowRoot.querySelector('.ed-temp'); const edFrom = this.shadowRoot.querySelector('.ed-from'); const edTo = this.shadowRoot.querySelector('.ed-to'); const overlay = this.shadowRoot.querySelector('.overlay'); const title = this.shadowRoot.querySelector('.modal h3'); const delBtn = this.shadowRoot.querySelector('.ed-delete'); const err = this.shadowRoot.querySelector('.ed-error'); const fromMer = this.shadowRoot.querySelector('.ed-from-mer'); const toMer = this.shadowRoot.querySelector('.ed-to-mer');
-    if (!blockId){ const now = Number.isFinite(atMin) ? atMin : this._getNowMin(); const start = this._clamp(Math.round(now), 0, 1380); const end = this._clamp(start+60, start+15, 1440); this._editing = { entity: eid, blockId: null, presence: true }; if (edTemp) { const base = Number(row.defaultTemp||this._config.default_temp||20); edTemp.value = String(this._toDisplayTemp(base)); edTemp.max = String(this._maxDisplay()); edTemp.min = String(this._minDisplay()); } if (this._config?.time_12h) { if (edFrom) edFrom.value=this._toTimeInput12h(start); if (edTo) edTo.value=this._toTimeInput12h(end); if (fromMer){ fromMer.style.display=''; fromMer.value=(start>=720)?'PM':'AM'; } if (toMer){ toMer.style.display=''; toMer.value=(end>=720 && end<1440)?'PM':'AM'; } } else { if (edFrom) edFrom.value=this._toTimeInput(start); if (edTo) edTo.value=this._toTimeInput(end); if (fromMer) fromMer.style.display='none'; if (toMer) toMer.style.display='none'; } if (title) title.textContent = this._t('ui.add_block'); if (delBtn) delBtn.style.display='none'; if (err){ err.style.display='none'; err.textContent=''; } }
-    else { const b = arr.find(x=>x.id===blockId); if (!b) return; this._editing = { entity: eid, blockId, presence: true }; if (edTemp) { edTemp.value = String(this._toDisplayTemp(b.temp)); edTemp.max = String(this._maxDisplay()); edTemp.min = String(this._minDisplay()); } if (this._config?.time_12h) { if (edFrom) edFrom.value=this._toTimeInput12h(b.startMin); if (edTo) edTo.value=this._toTimeInput12h(b.endMin); if (fromMer){ fromMer.style.display=''; fromMer.value=(b.startMin>=720)?'PM':'AM'; } if (toMer){ toMer.style.display=''; toMer.value=(b.endMin>=720 && b.endMin<1440)?'PM':'AM'; } } else { if (edFrom) edFrom.value=this._toTimeInput(b.startMin); if (edTo) edTo.value=this._toTimeInput(b.endMin); if (fromMer) fromMer.style.display='none'; if (toMer) toMer.style.display='none'; } if (title) title.textContent = this._t('ui.edit_block'); if (delBtn) delBtn.style.display=''; if (err){ err.style.display='none'; err.textContent=''; } }
+    if (!blockId){ const now = Number.isFinite(atMin) ? atMin : this._getNowMin(); const start = this._clamp(Math.round(now), 0, 1380); const end = this._clamp(start+60, start+15, 1440); this._editing = { entity: eid, blockId: null, presence: true }; if (edTemp) { const base = Number(row.defaultTemp||this._config.default_temp||20); edTemp.value = String(this._toDisplayTemp(base)); edTemp.max = String(this._maxDisplay()); edTemp.min = String(this._minDisplay()); } try { this._ensureEditorHvacControls(eid, null); } catch {} if (this._config?.time_12h) { if (edFrom) edFrom.value=this._toTimeInput12h(start); if (edTo) edTo.value=this._toTimeInput12h(end); if (fromMer){ fromMer.style.display=''; fromMer.value=(start>=720)?'PM':'AM'; } if (toMer){ toMer.style.display=''; toMer.value=(end>=720 && end<1440)?'PM':'AM'; } } else { if (edFrom) edFrom.value=this._toTimeInput(start); if (edTo) edTo.value=this._toTimeInput(end); if (fromMer) fromMer.style.display='none'; if (toMer) toMer.style.display='none'; } if (title) title.textContent = this._t('ui.add_block'); if (delBtn) delBtn.style.display='none'; if (err){ err.style.display='none'; err.textContent=''; } }
+    else { const b = arr.find(x=>x.id===blockId); if (!b) return; this._editing = { entity: eid, blockId, presence: true }; if (edTemp) { edTemp.value = String(this._toDisplayTemp(b.temp)); edTemp.max = String(this._maxDisplay()); edTemp.min = String(this._minDisplay()); } try { this._ensureEditorHvacControls(eid, b); } catch {} if (this._config?.time_12h) { if (edFrom) edFrom.value=this._toTimeInput12h(b.startMin); if (edTo) edTo.value=this._toTimeInput12h(b.endMin); if (fromMer){ fromMer.style.display=''; fromMer.value=(b.startMin>=720)?'PM':'AM'; } if (toMer){ toMer.style.display=''; toMer.value=(b.endMin>=720 && b.endMin<1440)?'PM':'AM'; } } else { if (edFrom) edFrom.value=this._toTimeInput(b.startMin); if (edTo) edTo.value=this._toTimeInput(b.endMin); if (fromMer) fromMer.style.display='none'; if (toMer) toMer.style.display='none'; } if (title) title.textContent = this._t('ui.edit_block'); if (delBtn) delBtn.style.display=''; if (err){ err.style.display='none'; err.textContent=''; } }
     // Hide presence overlay while editing
     const pov = this.shadowRoot.querySelector('.overlay-presence'); if (pov) pov.classList.remove('open'); this._profilesOverlayHiddenForEditor = false; this._holidayOverlayHiddenForEditor = false; // independent
     try { const modalEl = this.shadowRoot.querySelector('.overlay .modal:not(.modal-week)'); if (modalEl) modalEl.classList.toggle('modal-12h', !!this._config?.time_12h); } catch {}
@@ -18446,11 +18659,13 @@ class ThermostatTimelineCard extends HTMLElement {
       const now = Number.isFinite(atMin) ? atMin : this._getNowMin(); const start = this._clamp(Math.round(now), 0, 1380); const end = this._clamp(start+60, start+15, 1440);
   this._editing = { entity: eid, blockId: null, holiday: true };
       if (edTemp) { const base = Number(row.defaultTemp||this._config.default_temp||20); edTemp.value = String(this._toDisplayTemp(base)); edTemp.max = String(this._maxDisplay()); edTemp.min = String(this._minDisplay()); }
+      try { this._ensureEditorHvacControls(eid, null); } catch {}
       if (this._config?.time_12h) { if (edFrom) edFrom.value=this._toTimeInput12h(start); if (edTo) edTo.value=this._toTimeInput12h(end); if (fromMer){ fromMer.style.display=''; fromMer.value=(start>=720)?'PM':'AM'; } if (toMer){ toMer.style.display=''; toMer.value=(end>=720 && end<1440)?'PM':'AM'; } } else { if (edFrom) edFrom.value=this._toTimeInput(start); if (edTo) edTo.value=this._toTimeInput(end); if (fromMer) fromMer.style.display='none'; if (toMer) toMer.style.display='none'; }
       if (title) title.textContent = this._t('ui.add_block'); if (delBtn) delBtn.style.display='none'; if (err){ err.style.display='none'; err.textContent=''; }
     } else {
   const b = arr.find(x=>x.id===blockId); if (!b) return; this._editing = { entity: eid, blockId, holiday: true };
       if (edTemp) { edTemp.value = String(this._toDisplayTemp(b.temp)); edTemp.max = String(this._maxDisplay()); edTemp.min = String(this._minDisplay()); }
+      try { this._ensureEditorHvacControls(eid, b); } catch {}
       if (this._config?.time_12h) { if (edFrom) edFrom.value=this._toTimeInput12h(b.startMin); if (edTo) edTo.value=this._toTimeInput12h(b.endMin); if (fromMer){ fromMer.style.display=''; fromMer.value=(b.startMin>=720)?'PM':'AM'; } if (toMer){ toMer.style.display=''; toMer.value=(b.endMin>=720 && b.endMin<1440)?'PM':'AM'; } } else { if (edFrom) edFrom.value=this._toTimeInput(b.startMin); if (edTo) edTo.value=this._toTimeInput(b.endMin); if (fromMer) fromMer.style.display='none'; if (toMer) toMer.style.display='none'; }
       if (title) title.textContent = this._t('ui.edit_block'); if (delBtn) delBtn.style.display=''; if (err){ err.style.display='none'; err.textContent=''; }
     }
@@ -18713,6 +18928,7 @@ class ThermostatTimelineCard extends HTMLElement {
       }
     }
   temp = this._fromDisplayTemp(temp);
+  const hvacMode = this._editorSelectedHvacMode(entity);
   const before = this._desiredNowSnapshot();
     if (profileName) {
       // Save into a draft for the selected profile; persist only when user presses Save
@@ -18741,11 +18957,11 @@ class ThermostatTimelineCard extends HTMLElement {
         const ov1 = hasOverlap(arr, start, 1440, b?.id);
         const ov2 = hasOverlap(arr, 0, end, null);
         if (ov1 || ov2) { const errEl = this.shadowRoot.querySelector('.ed-error'); if (errEl) { const overlap = ov1 || ov2; const msg = this._t('ui.overlap_msg').replace('{start}', this._label(ov1?Math.max(start, ov1.startMin):0)).replace('{end}', this._label(ov1?Math.min(1440, ov1.endMin):end)); errEl.innerHTML = `<div>${msg}</div>`; errEl.style.display='block'; } return; }
-        if (!b) { const id1=Math.random().toString(36).slice(2,9); const id2=Math.random().toString(36).slice(2,9); arr.push({ id:id1, startMin:start, endMin:1440, temp: this._fromDisplayTemp(temp) }); arr.push({ id:id2, startMin:0, endMin:end, temp: this._fromDisplayTemp(temp) }); } else { b.temp=this._fromDisplayTemp(temp); b.startMin=start; b.endMin=1440; const id2=Math.random().toString(36).slice(2,9); arr.push({ id:id2, startMin:0, endMin:end, temp: this._fromDisplayTemp(temp) }); }
+        if (!b) { const id1=Math.random().toString(36).slice(2,9); const id2=Math.random().toString(36).slice(2,9); arr.push({ id:id1, startMin:start, endMin:1440, temp: this._fromDisplayTemp(temp), hvacMode: hvacMode || undefined }); arr.push({ id:id2, startMin:0, endMin:end, temp: this._fromDisplayTemp(temp), hvacMode: hvacMode || undefined }); } else { b.temp=this._fromDisplayTemp(temp); b.startMin=start; b.endMin=1440; if (hvacMode) b.hvacMode = hvacMode; else delete b.hvacMode; const id2=Math.random().toString(36).slice(2,9); arr.push({ id:id2, startMin:0, endMin:end, temp: this._fromDisplayTemp(temp), hvacMode: hvacMode || undefined }); }
       } else {
         const overlap = hasOverlap(arr, start, end, b?.id);
         if (overlap) { const errEl = this.shadowRoot.querySelector('.ed-error'); if (errEl) { const msg = this._t('ui.overlap_msg').replace('{start}', this._label(Math.max(start, overlap.startMin))).replace('{end}', this._label(Math.min(end, overlap.endMin))); errEl.innerHTML = `<div>${msg}</div>`; errEl.style.display='block'; } return; }
-        if (!b) { const id=Math.random().toString(36).slice(2,9); arr.push({ id, startMin:start, endMin:end, temp:this._fromDisplayTemp(temp) }); } else { b.temp=this._fromDisplayTemp(temp); b.startMin=start; b.endMin=end; }
+        if (!b) { const id=Math.random().toString(36).slice(2,9); arr.push({ id, startMin:start, endMin:end, temp:this._fromDisplayTemp(temp), hvacMode: hvacMode || undefined }); } else { b.temp=this._fromDisplayTemp(temp); b.startMin=start; b.endMin=end; if (hvacMode) b.hvacMode = hvacMode; else delete b.hvacMode; }
       }
   (this._profilesDraft.rooms||{})[curRoom] = arr.sort((a,bx)=>a.startMin-bx.startMin||a.endMin-bx.endMin);
       this._profilesDirty = true;
@@ -18794,21 +19010,21 @@ class ThermostatTimelineCard extends HTMLElement {
         if (!b) {
           const id1 = Math.random().toString(36).slice(2,9);
           const id2 = Math.random().toString(36).slice(2,9);
-          arrToday.push({ id:id1, startMin:start, endMin:1440, temp });
-          arrToday.push({ id:id2, startMin:0, endMin:end, temp });
+          arrToday.push({ id:id1, startMin:start, endMin:1440, temp, hvacMode: hvacMode || undefined });
+          arrToday.push({ id:id2, startMin:0, endMin:end, temp, hvacMode: hvacMode || undefined });
         } else {
-          b.temp = temp; b.startMin = start; b.endMin = 1440;
+          b.temp = temp; b.startMin = start; b.endMin = 1440; if (hvacMode) b.hvacMode = hvacMode; else delete b.hvacMode;
           const id2 = Math.random().toString(36).slice(2,9);
-          arrToday.push({ id:id2, startMin:0, endMin:end, temp });
+          arrToday.push({ id:id2, startMin:0, endMin:end, temp, hvacMode: hvacMode || undefined });
         }
         this._weeklyDraft.days[dayKey] = arrToday.sort((a,bx)=>a.startMin-bx.startMin||a.endMin-bx.endMin);
       } else {
         if (!b) {
           const id = Math.random().toString(36).slice(2,9);
-          b = { id, startMin: start, endMin: end, temp };
+          b = { id, startMin: start, endMin: end, temp, hvacMode: hvacMode || undefined };
           sourceBlocks.push(b);
         } else {
-          b.temp = temp; b.startMin = start; b.endMin = end;
+          b.temp = temp; b.startMin = start; b.endMin = end; if (hvacMode) b.hvacMode = hvacMode; else delete b.hvacMode;
         }
         sourceBlocks.sort((a,bx)=>a.startMin - bx.startMin || a.endMin - bx.endMin);
       }
@@ -18872,11 +19088,11 @@ class ThermostatTimelineCard extends HTMLElement {
         const ov1 = hasOverlap(arr, start, 1440, b?.id);
         const ov2 = hasOverlap(arr, 0, end, null);
         if (ov1 || ov2) { const errEl = this.shadowRoot.querySelector('.ed-error'); if (errEl) { const overlap = ov1 || ov2; const msg = this._t('ui.overlap_msg').replace('{start}', this._label(ov1?Math.max(start, ov1.startMin):0)).replace('{end}', this._label(ov1?Math.min(1440, ov1.endMin):end)); errEl.innerHTML = `<div>${msg}</div>`; errEl.style.display='block'; } return; }
-        if (!b) { const id1=Math.random().toString(36).slice(2,9); const id2=Math.random().toString(36).slice(2,9); arr.push({ id:id1, startMin:start, endMin:1440, temp }); arr.push({ id:id2, startMin:0, endMin:end, temp }); } else { b.temp=temp; b.startMin=start; b.endMin=1440; const id2=Math.random().toString(36).slice(2,9); arr.push({ id:id2, startMin:0, endMin:end, temp }); }
+        if (!b) { const id1=Math.random().toString(36).slice(2,9); const id2=Math.random().toString(36).slice(2,9); arr.push({ id:id1, startMin:start, endMin:1440, temp, hvacMode: hvacMode || undefined }); arr.push({ id:id2, startMin:0, endMin:end, temp, hvacMode: hvacMode || undefined }); } else { b.temp=temp; b.startMin=start; b.endMin=1440; if (hvacMode) b.hvacMode = hvacMode; else delete b.hvacMode; const id2=Math.random().toString(36).slice(2,9); arr.push({ id:id2, startMin:0, endMin:end, temp, hvacMode: hvacMode || undefined }); }
       } else {
         const overlap = hasOverlap(arr, start, end, b?.id);
         if (overlap) { const errEl = this.shadowRoot.querySelector('.ed-error'); if (errEl) { const msg = this._t('ui.overlap_msg').replace('{start}', this._label(Math.max(start, overlap.startMin))).replace('{end}', this._label(Math.min(end, overlap.endMin))); errEl.innerHTML = `<div>${msg}</div>`; errEl.style.display='block'; } return; }
-        if (!b) { const id=Math.random().toString(36).slice(2,9); arr.push({ id, startMin:start, endMin:end, temp }); } else { b.temp=temp; b.startMin=start; b.endMin=end; }
+        if (!b) { const id=Math.random().toString(36).slice(2,9); arr.push({ id, startMin:start, endMin:end, temp, hvacMode: hvacMode || undefined }); } else { b.temp=temp; b.startMin=start; b.endMin=end; if (hvacMode) b.hvacMode = hvacMode; else delete b.hvacMode; }
       }
       (this._presenceDraft.rooms||{})[eid] = arr.sort((a,bx)=>a.startMin-bx.startMin||a.endMin-bx.endMin);
       this._render(); this._closeEditor(); if (this._presenceOpen) this._renderPresenceModal();
@@ -18947,17 +19163,17 @@ class ThermostatTimelineCard extends HTMLElement {
       if (!b) {
         const id1 = Math.random().toString(36).slice(2,9);
         const id2 = Math.random().toString(36).slice(2,9);
-        row.blocks.push({ id:id1, startMin:start, endMin:1440, temp });
-        row.blocks.push({ id:id2, startMin:0, endMin:end, temp });
+        row.blocks.push({ id:id1, startMin:start, endMin:1440, temp, hvacMode: hvacMode || undefined });
+        row.blocks.push({ id:id2, startMin:0, endMin:end, temp, hvacMode: hvacMode || undefined });
       } else {
         // Update current b to first part and add second
-        b.temp = temp; b.startMin = start; b.endMin = 1440;
+        b.temp = temp; b.startMin = start; b.endMin = 1440; if (hvacMode) b.hvacMode = hvacMode; else delete b.hvacMode;
         const id2 = Math.random().toString(36).slice(2,9);
-        row.blocks.push({ id:id2, startMin:0, endMin:end, temp });
+        row.blocks.push({ id:id2, startMin:0, endMin:end, temp, hvacMode: hvacMode || undefined });
       }
       row.blocks.sort((a,bx)=>a.startMin-bx.startMin||a.endMin-bx.endMin);
     } else {
-      if (!b) { const id = Math.random().toString(36).slice(2,9); b = { id, startMin: start, endMin: end, temp }; row.blocks.push(b); } else { b.temp = temp; b.startMin = start; b.endMin = end; }
+      if (!b) { const id = Math.random().toString(36).slice(2,9); b = { id, startMin: start, endMin: end, temp, hvacMode: hvacMode || undefined }; row.blocks.push(b); } else { b.temp = temp; b.startMin = start; b.endMin = end; if (hvacMode) b.hvacMode = hvacMode; else delete b.hvacMode; }
       this._applyNoOverlapResize(entity, b, "left", b.startMin); this._applyNoOverlapResize(entity, b, "right", b.endMin);
     }
   // Persist local draft immediately for resilience

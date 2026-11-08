@@ -9,6 +9,7 @@
 > * Service to enable / disable a schedule per room
 > * Service to temporary pause a schedule per room
 > * Global setting for manual override. This disables the schedule for a room for a certain amount of time when a manual change is detected, either because a manually changing the temperature, through automation or both
+> * Ability to change the HVAC mode from a climate entitity in the schedule
 > 
 >  ----
 
